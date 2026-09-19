@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  useParams,
+  useNavigate,
+} from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
 
 function Program() {
   const { id } = useParams();
@@ -7,32 +12,34 @@ function Program() {
 
   const [program, setProgram] = useState(() => {
     const savedPrograms =
-      localStorage.getItem("onboardingPrograms");
+      localStorage.getItem(
+        "onboardingPrograms"
+      );
 
-    const programs = savedPrograms
-      ? JSON.parse(savedPrograms)
-      : [];
-
-    const foundProgram = programs.find(
-      (item) => String(item.id) === String(id)
-    );
-
-    if (!foundProgram) {
+    if (!savedPrograms) {
       return null;
     }
 
-    return {
-      ...foundProgram,
-      modules: Array.isArray(foundProgram.modules)
-        ? foundProgram.modules
-        : [],
-    };
+    try {
+      const programs = JSON.parse(
+        savedPrograms
+      );
+
+      return programs.find(
+        (item) =>
+          String(item.id) ===
+          String(id)
+      );
+    } catch {
+      return null;
+    }
   });
 
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] =
+    useState(false);
 
-  const [moduleTitle, setModuleTitle] = useState("");
-  const [moduleDescription, setModuleDescription] =
+  const [title, setTitle] = useState("");
+  const [description, setDescription] =
     useState("");
 
   const [contentType, setContentType] =
@@ -42,102 +49,144 @@ function Program() {
     return (
       <div className="app">
         <header className="navbar">
-          <h2>Onboard</h2>
-          <span>Admin</span>
+          <Link
+            to="/admin"
+            className="navbar-brand"
+          >
+            Onboard
+          </Link>
+
+          <div className="navbar-right">
+            <ThemeToggle />
+            <span>Admin</span>
+          </div>
         </header>
 
         <main className="admin-page">
-          <h1>Program not found</h1>
+          <div className="empty-journey">
+            <div className="empty-icon">
+              ?
+            </div>
 
-          <button
-            className="back-button"
-            onClick={() => navigate("/admin")}
-          >
-            ← Back to Admin
-          </button>
+            <h3>Program not found</h3>
+
+            <p>
+              This onboarding program may have
+              been deleted or does not exist.
+            </p>
+
+            <Link
+              to="/admin"
+              className="start-button"
+            >
+              Back to Programs
+            </Link>
+          </div>
         </main>
       </div>
     );
   }
 
-  const savePrograms = (updatedProgram) => {
-    const savedPrograms =
-      localStorage.getItem("onboardingPrograms");
-
-    const programs = savedPrograms
-      ? JSON.parse(savedPrograms)
+  const modules =
+    Array.isArray(program.modules)
+      ? program.modules
       : [];
 
-    const updatedPrograms = programs.map(
-      (item) =>
-        String(item.id) === String(id)
-          ? updatedProgram
-          : item
-    );
+  const saveProgram = (
+    updatedProgram
+  ) => {
+    const savedPrograms =
+      localStorage.getItem(
+        "onboardingPrograms"
+      );
 
-    localStorage.setItem(
-      "onboardingPrograms",
-      JSON.stringify(updatedPrograms)
-    );
+    if (!savedPrograms) return;
 
-    setProgram(updatedProgram);
+    try {
+      const programs =
+        JSON.parse(savedPrograms);
+
+      const updatedPrograms =
+        programs.map((item) =>
+          String(item.id) ===
+          String(updatedProgram.id)
+            ? updatedProgram
+            : item
+        );
+
+      localStorage.setItem(
+        "onboardingPrograms",
+        JSON.stringify(updatedPrograms)
+      );
+
+      setProgram(updatedProgram);
+    } catch {
+      return;
+    }
   };
 
   const addModule = (event) => {
     event.preventDefault();
 
-    if (!moduleTitle || !moduleDescription) {
+    if (
+      !title.trim() ||
+      !description.trim()
+    ) {
       return;
     }
 
     const newModule = {
       id: Date.now(),
-      title: moduleTitle,
-      description: moduleDescription,
+      title: title.trim(),
+      description: description.trim(),
       contentType,
-      order: program.modules.length + 1,
-
-      videoUrl: "",
       content: "",
-      task: "",
-      questions: [],
+      order: modules.length + 1,
     };
 
     const updatedProgram = {
       ...program,
       modules: [
-        ...program.modules,
+        ...modules,
         newModule,
       ],
     };
 
-    savePrograms(updatedProgram);
+    saveProgram(updatedProgram);
 
-    setModuleTitle("");
-    setModuleDescription("");
+    setTitle("");
+    setDescription("");
     setContentType("Video");
-
     setShowForm(false);
   };
 
-  const deleteModule = (moduleId) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this module?"
+  const deleteModule = (
+    moduleId
+  ) => {
+    const module = modules.find(
+      (item) =>
+        String(item.id) ===
+        String(moduleId)
     );
 
-    if (!confirmed) {
-      return;
-    }
+    if (!module) return;
+
+    const confirmed =
+      window.confirm(
+        `Delete "${module.title}"? This cannot be undone.`
+      );
+
+    if (!confirmed) return;
 
     const remainingModules =
-      program.modules
+      modules
         .filter(
-          (module) =>
-            String(module.id) !==
+          (item) =>
+            String(item.id) !==
             String(moduleId)
         )
-        .map((module, index) => ({
-          ...module,
+        .map((item, index) => ({
+          ...item,
           order: index + 1,
         }));
 
@@ -146,129 +195,135 @@ function Program() {
       modules: remainingModules,
     };
 
-    savePrograms(updatedProgram);
+    saveProgram(updatedProgram);
+
+    localStorage.removeItem(
+      `completedModules_${program.id}`
+    );
   };
 
   return (
     <div className="app">
-
       <header className="navbar">
-        <h2>Onboard</h2>
-        <span>Admin</span>
+        <Link
+          to="/admin"
+          className="navbar-brand"
+        >
+          Onboard
+        </Link>
+
+        <div className="navbar-right">
+          <Link
+            to="/admin"
+            className="program-back-link"
+          >
+            Programs
+          </Link>
+
+          <ThemeToggle />
+
+          <span>Admin</span>
+        </div>
       </header>
 
       <main className="admin-page">
-
-        <button
-          className="back-button"
-          onClick={() => navigate("/admin")}
-        >
-          ← Back to Programs
-        </button>
-
-        <section className="program-page-header">
-
-          <p className="label">
-            {program.organization}
-            {" • "}
-            {program.role}
-          </p>
-
-          <h1>{program.title}</h1>
-
-          <p>
-            {program.description}
-          </p>
-
-        </section>
-
-        <section className="journey-header">
-
-          <div>
-
+        <section className="program-header">
+          <div className="program-header-info">
             <p className="label">
-              JOURNEY BUILDER
+              {program.organization}
             </p>
 
-            <h2>
-              Onboarding Journey
-            </h2>
+            <h1>{program.title}</h1>
 
             <p>
-              Build the learning path your
-              employees will follow.
+              {program.role}
+              {" · "}
+              {modules.length}{" "}
+              {modules.length === 1
+                ? "module"
+                : "modules"}
             </p>
 
+            {program.description && (
+              <div className="program-description">
+                {program.description}
+              </div>
+            )}
           </div>
 
-          <button
-            className="start-button"
-            onClick={() =>
-              setShowForm(!showForm)
-            }
-          >
-            {showForm
-              ? "Cancel"
-              : "+ Add Module"}
-          </button>
+          <div className="program-header-actions">
+            <Link
+              to={`/program/${program.id}`}
+              className="secondary-action-button"
+            >
+              Preview
+            </Link>
 
+            <button
+              className="start-button"
+              onClick={() =>
+                setShowForm(!showForm)
+              }
+            >
+              {showForm
+                ? "Cancel"
+                : "+ Add Module"}
+            </button>
+          </div>
         </section>
 
         {showForm && (
+          <section className="admin-form-card module-add-form">
+            <div className="admin-form-heading">
+              <p className="label">
+                NEW MODULE
+              </p>
 
-          <section className="admin-form-card">
+              <h2>Add a module</h2>
 
-            <h2>Add Module</h2>
-
-            <p>
-              Create a step in this
-              onboarding journey.
-            </p>
+              <p>
+                Add the next step in this
+                onboarding journey.
+              </p>
+            </div>
 
             <form onSubmit={addModule}>
-
               <div className="form-group">
-
                 <label>
-                  Module Name
+                  Module title
                 </label>
 
                 <input
                   type="text"
-                  placeholder="e.g. Welcome to the Workplace"
-                  value={moduleTitle}
+                  placeholder="e.g. Store Navigation"
+                  value={title}
                   onChange={(event) =>
-                    setModuleTitle(
+                    setTitle(
                       event.target.value
                     )
                   }
                 />
-
               </div>
 
               <div className="form-group">
-
                 <label>
                   Description
                 </label>
 
                 <textarea
                   placeholder="What will the employee learn?"
-                  value={moduleDescription}
+                  value={description}
                   onChange={(event) =>
-                    setModuleDescription(
+                    setDescription(
                       event.target.value
                     )
                   }
-                  rows="4"
                 />
-
               </div>
 
               <div className="form-group">
-
                 <label>
-                  Content Type
+                  Content type
                 </label>
 
                 <select
@@ -295,121 +350,131 @@ function Program() {
                     Quiz
                   </option>
                 </select>
-
               </div>
 
-              <button
-                type="submit"
-                className="form-submit"
-              >
-                Add Module →
-              </button>
+              <div className="program-form-actions">
+                <button
+                  type="submit"
+                  className="form-submit"
+                >
+                  Add module →
+                </button>
 
+                <button
+                  type="button"
+                  className="secondary-action-button"
+                  onClick={() =>
+                    setShowForm(false)
+                  }
+                >
+                  Cancel
+                </button>
+              </div>
             </form>
-
           </section>
-
         )}
 
-        <section className="journey-modules">
+        <section className="journey-section">
+          <div className="section-heading">
+            <div>
+              <h2>Learning path</h2>
 
-          {program.modules.length === 0 ? (
+              <p className="section-heading-subtitle">
+                {modules.length === 0
+                  ? "No modules added yet"
+                  : "Modules are completed in order"}
+              </p>
+            </div>
 
+            {modules.length > 0 && (
+              <span className="module-count">
+                {modules.length}
+              </span>
+            )}
+          </div>
+
+          {modules.length === 0 ? (
             <div className="empty-journey">
-
               <div className="empty-icon">
-                📚
+                +
               </div>
 
-              <h3>
-                Your journey is empty
-              </h3>
+              <h3>No modules yet</h3>
 
               <p>
-                Add your first module to start
-                building the onboarding experience.
+                Add your first module to build
+                this onboarding journey.
               </p>
 
               <button
-                className="form-submit"
+                className="start-button"
                 onClick={() =>
                   setShowForm(true)
                 }
               >
-                + Add First Module
+                + Add module
               </button>
-
             </div>
-
           ) : (
-
-            program.modules.map(
-              (module, index) => (
-
-                <div
-                  className="journey-module"
-                  key={module.id}
-                >
-
-                  <div className="journey-number">
-                    {index + 1}
-                  </div>
-
-                  <div className="journey-module-info">
-
-                    <div className="journey-module-top">
-
-                      <span className="content-badge">
-                        {module.contentType}
-                      </span>
-
+            <div className="journey">
+              {modules.map(
+                (module, index) => (
+                  <article
+                    className="journey-module"
+                    key={module.id}
+                  >
+                    <div className="journey-module-number">
+                      {index + 1}
                     </div>
 
-                    <h3>
-                      {module.title}
-                    </h3>
+                    <div className="journey-module-info">
+                      <div className="journey-module-topline">
+                        <span className="module-type">
+                          {
+                            module.contentType
+                          }
+                        </span>
+                      </div>
 
-                    <p>
-                      {module.description}
-                    </p>
+                      <h3>
+                        {module.title}
+                      </h3>
 
-                  </div>
+                      <p>
+                        {module.description}
+                      </p>
+                    </div>
 
-                  <div className="module-actions">
+                    <div className="journey-module-actions">
+                      <button
+                        className="edit-module-button"
+                        onClick={() =>
+                          navigate(
+                            `/admin/program/${program.id}/module/${module.id}`
+                          )
+                        }
+                      >
+                        Edit
+                      </button>
 
-                    <button
-                      className="edit-module-button"
-                      onClick={() =>
-                        navigate(
-                          `/admin/program/${program.id}/module/${module.id}`
-                        )
-                      }
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      className="delete-module-button"
-                      onClick={() =>
-                        deleteModule(module.id)
-                      }
-                    >
-                      Delete
-                    </button>
-
-                  </div>
-
-                </div>
-
-              )
-            )
-
+                      <button
+                        className="delete-module-button"
+                        onClick={() =>
+                          deleteModule(
+                            module.id
+                          )
+                        }
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </article>
+                )
+              )}
+            </div>
           )}
-
         </section>
-
       </main>
-
     </div>
   );
 }

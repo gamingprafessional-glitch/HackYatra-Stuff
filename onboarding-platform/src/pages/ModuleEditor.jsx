@@ -1,842 +1,751 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
 
 function ModuleEditor() {
-  const { programId, moduleId } = useParams();
+  const {
+    programId,
+    moduleId,
+  } = useParams();
+
   const navigate = useNavigate();
 
-  const [data, setData] = useState(() => {
+  const [program, setProgram] = useState(() => {
     const savedPrograms =
-      localStorage.getItem("onboardingPrograms");
+      localStorage.getItem(
+        "onboardingPrograms"
+      );
 
-    const programs = savedPrograms
-      ? JSON.parse(savedPrograms)
-      : [];
+    if (!savedPrograms) return null;
 
-    const program = programs.find(
-      (item) => String(item.id) === String(programId)
-    );
+    try {
+      const programs =
+        JSON.parse(savedPrograms);
 
-    if (!program) {
+      return programs.find(
+        (item) =>
+          String(item.id) ===
+          String(programId)
+      );
+    } catch {
       return null;
     }
-
-    const modules = Array.isArray(program.modules)
-      ? program.modules
-      : [];
-
-    const module = modules.find(
-      (item) => String(item.id) === String(moduleId)
-    );
-
-    if (!module) {
-      return null;
-    }
-
-    return {
-      program,
-      module,
-    };
   });
 
+  const module = program
+    ? (
+        Array.isArray(program.modules)
+          ? program.modules
+          : []
+      ).find(
+        (item) =>
+          String(item.id) ===
+          String(moduleId)
+      )
+    : null;
+
   const [title, setTitle] = useState(
-    data?.module?.title || ""
+    module?.title || ""
   );
 
-  const [description, setDescription] = useState(
-    data?.module?.description || ""
-  );
+  const [description, setDescription] =
+    useState(
+      module?.description || ""
+    );
 
-  const [contentType, setContentType] = useState(
-    data?.module?.contentType || "Video"
-  );
+  const [contentType, setContentType] =
+    useState(
+      module?.contentType || "Video"
+    );
 
-  const [videoUrl, setVideoUrl] = useState(
-    data?.module?.videoUrl || ""
-  );
+  const [content, setContent] =
+    useState(
+      module?.content || ""
+    );
 
-  const [content, setContent] = useState(
-    data?.module?.content || ""
-  );
-
-  const [task, setTask] = useState(
-    data?.module?.task || ""
-  );
-
-  const [questions, setQuestions] = useState(
-    data?.module?.questions || []
-  );
-
-  const [questionText, setQuestionText] =
-    useState("");
-
-  const [options, setOptions] = useState([
-    "",
-    "",
-    "",
-    "",
-  ]);
-
-  const [correctAnswer, setCorrectAnswer] =
-    useState(0);
+  const [questions, setQuestions] =
+    useState(
+      Array.isArray(module?.questions)
+        ? module.questions
+        : []
+    );
 
   const [passingScore, setPassingScore] =
     useState(
-      data?.module?.passingScore ||
-      1
+      module?.passingScore ?? 70
     );
 
-  const [saved, setSaved] = useState(false);
-
-  if (!data) {
+  if (!program || !module) {
     return (
       <div className="app">
-
         <header className="navbar">
-          <h2>Onboard</h2>
-          <span>Admin</span>
+          <Link
+            to="/admin"
+            className="navbar-brand"
+          >
+            Onboard
+          </Link>
+
+          <div className="navbar-right">
+            <ThemeToggle />
+            <span>Admin</span>
+          </div>
         </header>
 
         <main className="admin-page">
+          <div className="empty-journey">
+            <div className="empty-icon">
+              ?
+            </div>
 
-          <h1>Module not found</h1>
+            <h3>
+              Module not found
+            </h3>
 
-          <button
-            className="back-button"
-            onClick={() =>
-              navigate(
-                `/admin/program/${programId}`
-              )
-            }
-          >
-            ← Back to Program
-          </button>
+            <p>
+              This module may have been
+              deleted or does not exist.
+            </p>
 
+            <Link
+              to={
+                program
+                  ? `/admin/program/${program.id}`
+                  : "/admin"
+              }
+              className="start-button"
+            >
+              Back to Program
+            </Link>
+          </div>
         </main>
-
       </div>
     );
   }
 
-  const updateOption = (
-    index,
+  const updateQuestion = (
+    questionIndex,
+    field,
     value
   ) => {
+    setQuestions((current) =>
+      current.map(
+        (question, index) => {
+          if (
+            index !== questionIndex
+          ) {
+            return question;
+          }
 
-    const updatedOptions = [
-      ...options,
-    ];
+          return {
+            ...question,
+            [field]: value,
+          };
+        }
+      )
+    );
+  };
 
-    updatedOptions[index] = value;
+  const updateOption = (
+    questionIndex,
+    optionIndex,
+    value
+  ) => {
+    setQuestions((current) =>
+      current.map(
+        (question, index) => {
+          if (
+            index !== questionIndex
+          ) {
+            return question;
+          }
 
-    setOptions(updatedOptions);
+          const updatedOptions = [
+            ...(question.options ||
+              []),
+          ];
+
+          updatedOptions[
+            optionIndex
+          ] = value;
+
+          return {
+            ...question,
+            options:
+              updatedOptions,
+          };
+        }
+      )
+    );
   };
 
   const addQuestion = () => {
+    setQuestions((current) => [
+      ...current,
+      {
+        id: Date.now(),
+        question: "",
+        options: [
+          "",
+          "",
+          "",
+          "",
+        ],
+        correctAnswer: 0,
+      },
+    ]);
+  };
 
-    if (!questionText.trim()) {
-      return;
-    }
+  const deleteQuestion = (
+    questionIndex
+  ) => {
+    setQuestions((current) =>
+      current.filter(
+        (_, index) =>
+          index !== questionIndex
+      )
+    );
+  };
+
+  const saveChanges = (event) => {
+    event.preventDefault();
 
     if (
-      options.some(
-        (option) => !option.trim()
-      )
+      !title.trim() ||
+      !description.trim()
     ) {
       return;
     }
 
-    const newQuestion = {
-      id: Date.now(),
-      question: questionText,
-      options,
-      correctAnswer,
+    const updatedModules =
+      (
+        Array.isArray(
+          program.modules
+        )
+          ? program.modules
+          : []
+      ).map((item) => {
+        if (
+          String(item.id) !==
+          String(module.id)
+        ) {
+          return item;
+        }
+
+        return {
+          ...item,
+          title: title.trim(),
+          description:
+            description.trim(),
+          contentType,
+          content,
+          questions:
+            contentType === "Quiz"
+              ? questions
+              : [],
+          passingScore:
+            contentType === "Quiz"
+              ? Number(passingScore)
+              : 0,
+        };
+      });
+
+    const updatedProgram = {
+      ...program,
+      modules: updatedModules,
     };
-
-    const updatedQuestions = [
-      ...questions,
-      newQuestion,
-    ];
-
-    setQuestions(updatedQuestions);
-
-    setQuestionText("");
-
-    setOptions([
-      "",
-      "",
-      "",
-      "",
-    ]);
-
-    setCorrectAnswer(0);
-  };
-
-  const deleteQuestion = (
-    questionId
-  ) => {
-
-    const updatedQuestions =
-      questions.filter(
-        (question) =>
-          question.id !== questionId
-      );
-
-    setQuestions(updatedQuestions);
-  };
-
-  const saveModule = (event) => {
-
-    event.preventDefault();
 
     const savedPrograms =
       localStorage.getItem(
         "onboardingPrograms"
       );
 
-    const programs = savedPrograms
-      ? JSON.parse(savedPrograms)
-      : [];
+    if (!savedPrograms) return;
 
-    const updatedPrograms =
-      programs.map((program) => {
+    try {
+      const programs =
+        JSON.parse(savedPrograms);
 
-        if (
-          String(program.id) !==
-          String(programId)
-        ) {
-          return program;
-        }
+      const updatedPrograms =
+        programs.map((item) =>
+          String(item.id) ===
+          String(program.id)
+            ? updatedProgram
+            : item
+        );
 
-        const updatedModules =
-          program.modules.map(
-            (module) => {
+      localStorage.setItem(
+        "onboardingPrograms",
+        JSON.stringify(
+          updatedPrograms
+        )
+      );
 
-              if (
-                String(module.id) !==
-                String(moduleId)
-              ) {
-                return module;
-              }
+      setProgram(updatedProgram);
 
-              return {
-                ...module,
-
-                title,
-                description,
-                contentType,
-
-                videoUrl,
-                content,
-                task,
-
-                questions,
-                passingScore,
-              };
-            }
-          );
-
-        return {
-          ...program,
-          modules: updatedModules,
-        };
-      });
-
-    localStorage.setItem(
-      "onboardingPrograms",
-      JSON.stringify(
-        updatedPrograms
-      )
-    );
-
-    setSaved(true);
-
-    setTimeout(() => {
-      setSaved(false);
-    }, 2000);
-
-    setData({
-      ...data,
-
-      module: {
-        ...data.module,
-
-        title,
-        description,
-        contentType,
-
-        videoUrl,
-        content,
-        task,
-
-        questions,
-        passingScore,
-      },
-    });
+      navigate(
+        `/admin/program/${program.id}`
+      );
+    } catch {
+      return;
+    }
   };
 
   return (
     <div className="app">
-
-      {/* Navbar */}
-
       <header className="navbar">
-
-        <h2>
+        <Link
+          to="/admin"
+          className="navbar-brand"
+        >
           Onboard
-        </h2>
+        </Link>
 
-        <span>
-          Admin
-        </span>
+        <div className="navbar-right">
+          <Link
+            to={`/admin/program/${program.id}`}
+            className="editor-exit-button"
+          >
+            ← Exit
+          </Link>
 
+          <ThemeToggle />
+
+          <span>Admin</span>
+        </div>
       </header>
 
       <main className="admin-page">
+        <section className="editor-header">
+          <div>
+            <p className="label">
+              EDIT MODULE
+            </p>
 
-        {/* Back */}
+            <h1>Edit module</h1>
 
-        <button
-          className="back-button"
-          onClick={() =>
-            navigate(
-              `/admin/program/${programId}`
-            )
-          }
-        >
-          ← Back to Program
-        </button>
-
-        {/* Header */}
-
-        <section className="program-page-header">
-
-          <p className="label">
-            MODULE {data.module.order}
-          </p>
-
-          <h1>
-            Edit Module
-          </h1>
-
-          <p>
-            Add the learning content employees
-            will see when they open this module.
-          </p>
-
+            <p>
+              Update the content and learning
+              experience for this module.
+            </p>
+          </div>
         </section>
 
-        <section className="admin-form-card">
-
-          <form onSubmit={saveModule}>
-
-            {/* =========================
-                BASIC INFORMATION
-            ========================= */}
-
-            <div className="editor-section">
-
+        <form
+          className="module-editor"
+          onSubmit={saveChanges}
+        >
+          <section className="editor-section">
+            <div className="editor-section-heading">
               <p className="label">
-                BASIC INFORMATION
+                MODULE DETAILS
               </p>
 
               <h2>
-                Module Details
+                Basic information
               </h2>
 
-              <div className="form-group">
+              <p>
+                Define what the learner will
+                see before starting the module.
+              </p>
+            </div>
 
+            <div className="form-group">
+              <label>
+                Module title
+              </label>
+
+              <input
+                type="text"
+                value={title}
+                onChange={(event) =>
+                  setTitle(
+                    event.target.value
+                  )
+                }
+                placeholder="e.g. Store Navigation"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                Description
+              </label>
+
+              <textarea
+                value={description}
+                onChange={(event) =>
+                  setDescription(
+                    event.target.value
+                  )
+                }
+                placeholder="What will the employee learn?"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                Content type
+              </label>
+
+              <select
+                value={contentType}
+                onChange={(event) =>
+                  setContentType(
+                    event.target.value
+                  )
+                }
+              >
+                <option value="Video">
+                  Video
+                </option>
+
+                <option value="Guide">
+                  Guide
+                </option>
+
+                <option value="Task">
+                  Task
+                </option>
+
+                <option value="Quiz">
+                  Quiz
+                </option>
+              </select>
+            </div>
+          </section>
+
+          {contentType ===
+            "Video" && (
+            <section className="editor-section">
+              <div className="editor-section-heading">
+                <p className="label">
+                  VIDEO
+                </p>
+
+                <h2>
+                  Video content
+                </h2>
+
+                <p>
+                  Add a YouTube video URL
+                  for this module.
+                </p>
+              </div>
+
+              <div className="form-group">
                 <label>
-                  Module Name
+                  YouTube URL
                 </label>
 
                 <input
-                  type="text"
-                  value={title}
+                  type="url"
+                  value={content}
                   onChange={(event) =>
-                    setTitle(
+                    setContent(
                       event.target.value
                     )
                   }
+                  placeholder="https://www.youtube.com/watch?v=..."
                 />
+              </div>
+            </section>
+          )}
 
+          {contentType ===
+            "Guide" && (
+            <section className="editor-section">
+              <div className="editor-section-heading">
+                <p className="label">
+                  GUIDE
+                </p>
+
+                <h2>
+                  Guide content
+                </h2>
+
+                <p>
+                  Write the instructions or
+                  information the learner
+                  needs to read.
+                </p>
               </div>
 
               <div className="form-group">
-
                 <label>
-                  Description
+                  Guide instructions
                 </label>
 
                 <textarea
-                  value={description}
+                  className="editor-large-textarea"
+                  value={content}
                   onChange={(event) =>
-                    setDescription(
+                    setContent(
                       event.target.value
                     )
                   }
-                  rows="4"
+                  placeholder="Write the guide content here..."
                 />
+              </div>
+            </section>
+          )}
 
+          {contentType ===
+            "Task" && (
+            <section className="editor-section">
+              <div className="editor-section-heading">
+                <p className="label">
+                  TASK
+                </p>
+
+                <h2>
+                  Task instructions
+                </h2>
+
+                <p>
+                  Tell the learner what they
+                  need to complete.
+                </p>
               </div>
 
               <div className="form-group">
-
                 <label>
-                  Content Type
+                  Instructions
                 </label>
 
-                <select
-                  value={contentType}
+                <textarea
+                  className="editor-large-textarea"
+                  value={content}
                   onChange={(event) =>
-                    setContentType(
+                    setContent(
                       event.target.value
                     )
                   }
-                >
-
-                  <option value="Video">
-                    Video
-                  </option>
-
-                  <option value="Guide">
-                    Guide
-                  </option>
-
-                  <option value="Task">
-                    Task
-                  </option>
-
-                  <option value="Quiz">
-                    Quiz
-                  </option>
-
-                </select>
-
+                  placeholder="Write the task instructions here..."
+                />
               </div>
+            </section>
+          )}
 
-            </div>
-
-            {/* =========================
-                VIDEO
-            ========================= */}
-
-            {contentType === "Video" && (
-
-              <div className="editor-section">
-
+          {contentType ===
+            "Quiz" && (
+            <section className="editor-section">
+              <div className="editor-section-heading">
                 <p className="label">
-                  VIDEO CONTENT
+                  QUIZ
                 </p>
 
                 <h2>
-                  Training Video
+                  Quiz builder
                 </h2>
 
-                <div className="form-group">
-
-                  <label>
-                    Video URL
-                  </label>
-
-                  <input
-                    type="url"
-                    placeholder="https://youtube.com/..."
-                    value={videoUrl}
-                    onChange={(event) =>
-                      setVideoUrl(
-                        event.target.value
-                      )
-                    }
-                  />
-
-                </div>
-
-                <p className="field-help">
-                  Paste a YouTube or other video
-                  URL that employees can watch.
+                <p>
+                  Create questions and define
+                  the passing score.
                 </p>
-
               </div>
 
-            )}
+              <div className="form-group">
+                <label>
+                  Passing score (%)
+                </label>
 
-            {/* =========================
-                GUIDE
-            ========================= */}
-
-            {contentType === "Guide" && (
-
-              <div className="editor-section">
-
-                <p className="label">
-                  GUIDE CONTENT
-                </p>
-
-                <h2>
-                  Learning Material
-                </h2>
-
-                <div className="form-group">
-
-                  <label>
-                    Guide Content
-                  </label>
-
-                  <textarea
-                    placeholder="Write the instructions or learning material..."
-                    value={content}
-                    onChange={(event) =>
-                      setContent(
-                        event.target.value
-                      )
-                    }
-                    rows="10"
-                  />
-
-                </div>
-
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={passingScore}
+                  onChange={(event) =>
+                    setPassingScore(
+                      event.target.value
+                    )
+                  }
+                />
               </div>
 
-            )}
+              <div className="quiz-editor-list">
+                {questions.length ===
+                0 ? (
+                  <div className="quiz-empty">
+                    <h3>
+                      No questions yet
+                    </h3>
 
-            {/* =========================
-                TASK
-            ========================= */}
-
-            {contentType === "Task" && (
-
-              <div className="editor-section">
-
-                <p className="label">
-                  TASK CONTENT
-                </p>
-
-                <h2>
-                  Employee Task
-                </h2>
-
-                <div className="form-group">
-
-                  <label>
-                    Task Instructions
-                  </label>
-
-                  <textarea
-                    placeholder="Describe what the employee needs to complete..."
-                    value={task}
-                    onChange={(event) =>
-                      setTask(
-                        event.target.value
-                      )
-                    }
-                    rows="8"
-                  />
-
-                </div>
-
-              </div>
-
-            )}
-
-            {/* =========================
-                QUIZ
-            ========================= */}
-
-            {contentType === "Quiz" && (
-
-              <div className="editor-section">
-
-                <p className="label">
-                  QUIZ BUILDER
-                </p>
-
-                <h2>
-                  Knowledge Check
-                </h2>
-
-                <p className="field-help">
-                  Create multiple-choice questions
-                  for this module.
-                </p>
-
-                {/* Existing Questions */}
-
-                {questions.length > 0 && (
-
-                  <div className="question-list">
-
-                    {questions.map(
-                      (
-                        question,
-                        index
-                      ) => (
-
-                        <div
-                          className="admin-question"
-                          key={question.id}
-                        >
-
-                          <div className="question-number">
-                            {index + 1}
-                          </div>
-
-                          <div className="admin-question-content">
-
-                            <h3>
-                              {question.question}
-                            </h3>
-
-                            <div className="admin-options">
-
-                              {question.options.map(
-                                (
-                                  option,
-                                  optionIndex
-                                ) => (
-
-                                  <div
-                                    className={
-                                      optionIndex ===
-                                      question.correctAnswer
-                                        ? "admin-option correct"
-                                        : "admin-option"
-                                    }
-                                    key={optionIndex}
-                                  >
-
-                                    <span>
-                                      {String.fromCharCode(
-                                        65 +
-                                        optionIndex
-                                      )}
-                                    </span>
-
-                                    {option}
-
-                                    {optionIndex ===
-                                      question.correctAnswer && (
-                                      <strong>
-                                        ✓ Correct
-                                      </strong>
-                                    )}
-
-                                  </div>
-
-                                )
-                              )}
-
-                            </div>
-
-                          </div>
+                    <p>
+                      Add your first question
+                      to build the quiz.
+                    </p>
+                  </div>
+                ) : (
+                  questions.map(
+                    (
+                      question,
+                      questionIndex
+                    ) => (
+                      <div
+                        className="quiz-editor-card"
+                        key={
+                          question.id ||
+                          questionIndex
+                        }
+                      >
+                        <div className="quiz-editor-top">
+                          <span>
+                            Question{" "}
+                            {questionIndex +
+                              1}
+                          </span>
 
                           <button
                             type="button"
-                            className="delete-question"
+                            className="quiz-delete-button"
                             onClick={() =>
                               deleteQuestion(
-                                question.id
+                                questionIndex
                               )
                             }
                           >
                             Delete
                           </button>
-
                         </div>
 
-                      )
-                    )}
-
-                  </div>
-
-                )}
-
-                {/* Add Question */}
-
-                <div className="add-question-box">
-
-                  <h3>
-                    + Add Question
-                  </h3>
-
-                  <div className="form-group">
-
-                    <label>
-                      Question
-                    </label>
-
-                    <input
-                      type="text"
-                      placeholder="e.g. Where should you go if you need help?"
-                      value={questionText}
-                      onChange={(event) =>
-                        setQuestionText(
-                          event.target.value
-                        )
-                      }
-                    />
-
-                  </div>
-
-                  <div className="quiz-options-editor">
-
-                    {options.map(
-                      (
-                        option,
-                        index
-                      ) => (
-
-                        <div
-                          className="quiz-option-row"
-                          key={index}
-                        >
-
-                          <span>
-                            {String.fromCharCode(
-                              65 + index
-                            )}
-                          </span>
+                        <div className="form-group">
+                          <label>
+                            Question
+                          </label>
 
                           <input
                             type="text"
-                            placeholder={`Option ${
-                              index + 1
-                            }`}
-                            value={option}
-                            onChange={(event) =>
-                              updateOption(
-                                index,
-                                event.target.value
+                            value={
+                              question.question ||
+                              ""
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              updateQuestion(
+                                questionIndex,
+                                "question",
+                                event
+                                  .target
+                                  .value
                               )
                             }
+                            placeholder="e.g. What should you do before entering the store?"
                           />
-
-                          <input
-                            type="radio"
-                            name="correctAnswer"
-                            checked={
-                              correctAnswer ===
-                              index
-                            }
-                            onChange={() =>
-                              setCorrectAnswer(
-                                index
-                              )
-                            }
-                          />
-
-                          <label>
-                            Correct
-                          </label>
-
                         </div>
 
-                      )
-                    )}
+                        <div className="quiz-options">
+                          <label className="quiz-options-label">
+                            Answer options
+                          </label>
 
-                  </div>
+                          {(
+                            question.options ||
+                            []
+                          ).map(
+                            (
+                              option,
+                              optionIndex
+                            ) => (
+                              <div
+                                className="quiz-option-editor"
+                                key={
+                                  optionIndex
+                                }
+                              >
+                                <span className="quiz-option-number">
+                                  {String.fromCharCode(
+                                    65 +
+                                      optionIndex
+                                  )}
+                                </span>
 
-                  <button
-                    type="button"
-                    className="add-question-button"
-                    onClick={addQuestion}
-                  >
-                    Add Question
-                  </button>
+                                <input
+                                  type="text"
+                                  value={
+                                    option
+                                  }
+                                  onChange={(
+                                    event
+                                  ) =>
+                                    updateOption(
+                                      questionIndex,
+                                      optionIndex,
+                                      event
+                                        .target
+                                        .value
+                                    )
+                                  }
+                                  placeholder={`Option ${
+                                    optionIndex +
+                                    1
+                                  }`}
+                                />
 
-                </div>
+                                <label className="correct-answer-label">
+                                  <input
+                                    type="radio"
+                                    name={`correct-${questionIndex}`}
+                                    checked={
+                                      Number(
+                                        question.correctAnswer
+                                      ) ===
+                                      optionIndex
+                                    }
+                                    onChange={() =>
+                                      updateQuestion(
+                                        questionIndex,
+                                        "correctAnswer",
+                                        optionIndex
+                                      )
+                                    }
+                                  />
 
-                {/* Passing Score */}
-
-                <div className="passing-score">
-
-                  <div>
-
-                    <strong>
-                      Passing Score
-                    </strong>
-
-                    <p>
-                      Minimum number of correct
-                      answers required.
-                    </p>
-
-                  </div>
-
-                  <select
-                    value={passingScore}
-                    onChange={(event) =>
-                      setPassingScore(
-                        Number(
-                          event.target.value
-                        )
-                      )
-                    }
-                  >
-
-                    {Array.from(
-                      {
-                        length:
-                          Math.max(
-                            questions.length,
-                            1
-                          ),
-                      },
-                      (_, index) => (
-                        <option
-                          key={index + 1}
-                          value={index + 1}
-                        >
-                          {index + 1}
-                        </option>
-                      )
-                    )}
-
-                  </select>
-
-                  <span>
-                    / {questions.length}
-                  </span>
-
-                </div>
-
+                                  Correct
+                                </label>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )
+                  )
+                )}
               </div>
-
-            )}
-
-            {/* Save */}
-
-            <div className="editor-actions">
 
               <button
                 type="button"
-                className="cancel-button"
-                onClick={() =>
-                  navigate(
-                    `/admin/program/${programId}`
-                  )
-                }
+                className="add-question-button"
+                onClick={addQuestion}
               >
-                Cancel
+                + Add Question
               </button>
+            </section>
+          )}
 
-              <button
-                type="submit"
-                className="form-submit"
-              >
-                {saved
-                  ? "✓ Saved"
-                  : "Save Module →"}
-              </button>
+          <section className="editor-actions">
+            <Link
+              to={`/admin/program/${program.id}`}
+              className="editor-exit-large-button"
+            >
+              Exit
+            </Link>
 
-            </div>
-
-          </form>
-
-        </section>
-
+            <button
+              type="submit"
+              className="editor-save-button"
+            >
+              Save changes →
+            </button>
+          </section>
+        </form>
       </main>
-
     </div>
   );
 }

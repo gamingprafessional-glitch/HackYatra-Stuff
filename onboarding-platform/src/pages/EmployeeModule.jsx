@@ -1,5 +1,56 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
+
+function getYouTubeEmbedUrl(url) {
+  if (!url) return "";
+
+  try {
+    const parsedUrl = new URL(url);
+
+    // youtube.com/watch?v=...
+    const videoId =
+      parsedUrl.searchParams.get("v");
+
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    // youtu.be/...
+    if (
+      parsedUrl.hostname.includes(
+        "youtu.be"
+      )
+    ) {
+      const id =
+        parsedUrl.pathname.replace(
+          "/",
+          ""
+        );
+
+      if (id) {
+        return `https://www.youtube.com/embed/${id}`;
+      }
+    }
+
+    // youtube.com/embed/...
+    if (
+      parsedUrl.pathname.startsWith(
+        "/embed/"
+      )
+    ) {
+      return url;
+    }
+
+    return url;
+  } catch {
+    return url;
+  }
+}
 
 function EmployeeModule() {
   const {
@@ -9,611 +60,713 @@ function EmployeeModule() {
 
   const navigate = useNavigate();
 
-  const [data] = useState(() => {
+  const [program] = useState(() => {
     const savedPrograms =
-      localStorage.getItem("onboardingPrograms");
+      localStorage.getItem(
+        "onboardingPrograms"
+      );
 
-    const programs = savedPrograms
-      ? JSON.parse(savedPrograms)
-      : [];
+    if (!savedPrograms) return null;
 
-    const program = programs.find(
-      (item) =>
-        String(item.id) ===
-        String(programId)
-    );
+    try {
+      const programs =
+        JSON.parse(savedPrograms);
 
-    if (!program) {
+      return programs.find(
+        (item) =>
+          String(item.id) ===
+          String(programId)
+      );
+    } catch {
       return null;
     }
-
-    const modules =
-      Array.isArray(program.modules)
-        ? program.modules
-        : [];
-
-    const module = modules.find(
-      (item) =>
-        String(item.id) ===
-        String(moduleId)
-    );
-
-    if (!module) {
-      return null;
-    }
-
-    return {
-      program,
-      module,
-    };
   });
 
-  const [quizAnswers, setQuizAnswers] =
+  const module = program
+    ? (
+        Array.isArray(program.modules)
+          ? program.modules
+          : []
+      ).find(
+        (item) =>
+          String(item.id) ===
+          String(moduleId)
+      )
+    : null;
+
+  const questions = Array.isArray(
+    module?.questions
+  )
+    ? module.questions
+    : [];
+
+  const [selectedAnswers, setSelectedAnswers] =
     useState({});
 
   const [quizResult, setQuizResult] =
     useState(null);
 
-  if (!data) {
+  const [completed, setCompleted] =
+    useState(() => {
+      if (!program) return false;
+
+      const saved =
+        localStorage.getItem(
+          `completedModules_${program.id}`
+        );
+
+      if (!saved) return false;
+
+      try {
+        const completedModules =
+          JSON.parse(saved);
+
+        return completedModules.includes(
+          String(moduleId)
+        );
+      } catch {
+        return false;
+      }
+    });
+
+  if (!program || !module) {
     return (
-      <div className="app">
-
-        <header className="navbar">
-          <h2>Onboard</h2>
-          <span>Employee</span>
-        </header>
-
-        <main className="module-page">
-
-          <h1>
-            Module not found
-          </h1>
-
+      <div className="preview-app">
+        <header className="preview-navbar">
           <Link
-            to={`/program/${programId}`}
-            className="start-button"
+            to="/admin"
+            className="preview-logo"
           >
-            Back to Program
+            Onboard
           </Link>
 
-        </main>
+          <div className="preview-navbar-right">
+            <ThemeToggle />
+            <span>Employee</span>
+          </div>
+        </header>
 
+        <main className="preview-container">
+          <div className="preview-empty">
+            <div className="preview-empty-icon">
+              ?
+            </div>
+
+            <h2>
+              Module not found
+            </h2>
+
+            <p>
+              This module does not exist.
+            </p>
+
+            <Link
+              to={`/program/${programId}`}
+              className="preview-primary-button"
+            >
+              Back to Program
+            </Link>
+          </div>
+        </main>
       </div>
     );
   }
 
-  const {
-    program,
-    module,
-  } = data;
-
-  /* =========================
-     VIDEO URL CONVERTER
-  ========================= */
-
-  const getVideoUrl = (url) => {
-
-    if (!url) {
-      return "";
-    }
-
-    try {
-      const parsedUrl =
-        new URL(url);
-
-      /* YouTube watch link */
-
-      if (
-        parsedUrl.hostname.includes(
-          "youtube.com"
-        )
-      ) {
-
-        const videoId =
-          parsedUrl.searchParams.get(
-            "v"
-          );
-
-        if (videoId) {
-          return `https://www.youtube.com/embed/${videoId}`;
-        }
-
-        /* Already an embed URL */
-
-        if (
-          parsedUrl.pathname.startsWith(
-            "/embed/"
-          )
-        ) {
-          return url;
-        }
-      }
-
-      /* YouTube short link */
-
-      if (
-        parsedUrl.hostname ===
-          "youtu.be"
-      ) {
-
-        const videoId =
-          parsedUrl.pathname.slice(1);
-
-        if (videoId) {
-          return `https://www.youtube.com/embed/${videoId}`;
-        }
-      }
-
-      /* Other video URLs */
-
-      return url;
-
-    } catch (error) {
-
-      return "";
-
-    }
-  };
-
-  const videoUrl =
-    getVideoUrl(module.videoUrl);
-
-  /* =========================
-     COMPLETE MODULE
-  ========================= */
-
-  const markComplete = () => {
-
+  const markModuleComplete = () => {
     const storageKey =
-      `completedModules_${programId}`;
+      `completedModules_${program.id}`;
 
     const saved =
-      localStorage.getItem(
-        storageKey
-      );
+      localStorage.getItem(storageKey);
 
-    const completed =
-      saved
-        ? JSON.parse(saved)
-        : [];
+    let completedModules = [];
+
+    if (saved) {
+      try {
+        completedModules =
+          JSON.parse(saved);
+      } catch {
+        completedModules = [];
+      }
+    }
 
     const moduleIdString =
       String(module.id);
 
     if (
-      !completed.includes(
+      !completedModules.includes(
         moduleIdString
       )
     ) {
-      completed.push(
+      completedModules.push(
         moduleIdString
       );
     }
 
     localStorage.setItem(
       storageKey,
-      JSON.stringify(completed)
+      JSON.stringify(completedModules)
     );
 
+    setCompleted(true);
+  };
+
+  const goBackToProgram = () => {
     navigate(
-      `/program/${programId}`
+      `/program/${program.id}`
     );
   };
 
-  /* =========================
-     QUIZ
-  ========================= */
-
-  const selectQuizAnswer = (
+  const handleAnswer = (
     questionIndex,
     optionIndex
   ) => {
+    if (quizResult !== null) {
+      return;
+    }
 
-    setQuizAnswers({
-      ...quizAnswers,
-      [questionIndex]:
-        optionIndex,
-    });
+    setSelectedAnswers(
+      (current) => ({
+        ...current,
+        [questionIndex]:
+          optionIndex,
+      })
+    );
   };
 
-  const submitQuiz = () => {
+  const submitQuiz = (event) => {
+    event.preventDefault();
 
-    const questions =
-      Array.isArray(module.questions)
-        ? module.questions
-        : [];
+    if (questions.length === 0) {
+      return;
+    }
 
-    let score = 0;
+    // Don't allow submission until
+    // every question has an answer.
+    const unansweredQuestions =
+      questions.some(
+        (_, index) =>
+          selectedAnswers[index] ===
+          undefined
+      );
+
+    if (unansweredQuestions) {
+      return;
+    }
+
+    let correctAnswers = 0;
 
     questions.forEach(
       (question, index) => {
+        const selectedAnswer =
+          Number(
+            selectedAnswers[index]
+          );
+
+        const correctAnswer =
+          Number(
+            question.correctAnswer
+          );
 
         if (
-          quizAnswers[index] ===
-          question.correctAnswer
+          selectedAnswer ===
+          correctAnswer
         ) {
-          score++;
+          correctAnswers += 1;
         }
-
       }
     );
 
-    setQuizResult(score);
+    const percentage = Math.round(
+      (correctAnswers /
+        questions.length) *
+        100
+    );
+
+    const requiredScore =
+      Number(
+        module.passingScore
+      ) || 70;
+
+    const passed =
+      percentage >= requiredScore;
+
+    setQuizResult({
+      correctAnswers,
+      totalQuestions:
+        questions.length,
+      percentage,
+      passingScore:
+        requiredScore,
+      passed,
+    });
+
+    if (passed) {
+      markModuleComplete();
+    }
   };
 
-  const questions =
-    Array.isArray(module.questions)
-      ? module.questions
-      : [];
+  const retryQuiz = () => {
+    setSelectedAnswers({});
+    setQuizResult(null);
+    setCompleted(false);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const renderVideo = () => {
+    const embedUrl =
+      getYouTubeEmbedUrl(
+        module.content
+      );
+
+    if (!embedUrl) {
+      return (
+        <div className="employee-content-empty">
+          <h3>
+            No video added yet
+          </h3>
+
+          <p>
+            This module does not have a
+            video assigned.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="employee-video-wrapper">
+        <iframe
+          src={embedUrl}
+          title={module.title}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      </div>
+    );
+  };
+
+  const renderGuide = () => {
+    return (
+      <div className="employee-text-content">
+        {module.content ? (
+          <p>
+            {module.content}
+          </p>
+        ) : (
+          <>
+            <h3>
+              No guide content yet
+            </h3>
+
+            <p>
+              Your administrator has not
+              added instructions for this
+              module.
+            </p>
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const renderTask = () => {
+    return (
+      <div className="employee-task-content">
+        <div className="employee-task-icon">
+          ✓
+        </div>
+
+        <div>
+          <h3>
+            Complete this task
+          </h3>
+
+          <p>
+            {module.content ||
+              "Complete the assigned task before continuing."}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  const renderQuiz = () => {
+    if (questions.length === 0) {
+      return (
+        <div className="employee-content-empty">
+          <h3>
+            No questions available
+          </h3>
+
+          <p>
+            This quiz has not been configured
+            yet.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <form
+        className="employee-quiz"
+        onSubmit={submitQuiz}
+      >
+        <div className="employee-quiz-header">
+          <div>
+            <p className="preview-label">
+              QUIZ
+            </p>
+
+            <h2>
+              Check your knowledge
+            </h2>
+
+            <p>
+              Answer all questions and
+              submit your quiz.
+            </p>
+          </div>
+
+          <div className="employee-quiz-score-info">
+            Pass:{" "}
+            {Number(
+              module.passingScore
+            ) || 70}
+            %
+          </div>
+        </div>
+
+        <div className="employee-question-list">
+          {questions.map(
+            (question, questionIndex) => {
+              const selected =
+                selectedAnswers[
+                  questionIndex
+                ];
+
+              const correctAnswer =
+                Number(
+                  question.correctAnswer
+                );
+
+              return (
+                <div
+                  className="employee-question-card"
+                  key={
+                    question.id ||
+                    questionIndex
+                  }
+                >
+                  <div className="employee-question-number">
+                    Question{" "}
+                    {questionIndex + 1}
+                  </div>
+
+                  <h3>
+                    {question.question}
+                  </h3>
+
+                  <div className="employee-options">
+                    {(
+                      question.options ||
+                      []
+                    ).map(
+                      (
+                        option,
+                        optionIndex
+                      ) => {
+                        const isSelected =
+                          selected ===
+                          optionIndex;
+
+                        const isCorrect =
+                          quizResult !==
+                            null &&
+                          optionIndex ===
+                            correctAnswer;
+
+                        const isWrongSelected =
+                          quizResult !==
+                            null &&
+                          isSelected &&
+                          optionIndex !==
+                            correctAnswer;
+
+                        return (
+                          <label
+                            key={
+                              optionIndex
+                            }
+                            className={[
+                              "employee-option",
+                              isSelected
+                                ? "employee-option-selected"
+                                : "",
+                              isCorrect
+                                ? "employee-option-correct"
+                                : "",
+                              isWrongSelected
+                                ? "employee-option-wrong"
+                                : "",
+                            ]
+                              .filter(
+                                Boolean
+                              )
+                              .join(" ")}
+                          >
+                            <input
+                              type="radio"
+                              name={`question-${questionIndex}`}
+                              checked={
+                                isSelected
+                              }
+                              disabled={
+                                quizResult !==
+                                null
+                              }
+                              onChange={() =>
+                                handleAnswer(
+                                  questionIndex,
+                                  optionIndex
+                                )
+                              }
+                            />
+
+                            <span className="employee-option-letter">
+                              {String.fromCharCode(
+                                65 +
+                                  optionIndex
+                              )}
+                            </span>
+
+                            <span>
+                              {option}
+                            </span>
+                          </label>
+                        );
+                      }
+                    )}
+                  </div>
+                </div>
+              );
+            }
+          )}
+        </div>
+
+        {quizResult === null && (
+          <div className="employee-quiz-actions">
+            <button
+              type="submit"
+              className="employee-submit-quiz-button"
+              disabled={
+                questions.some(
+                  (_, index) =>
+                    selectedAnswers[
+                      index
+                    ] === undefined
+                )
+              }
+            >
+              Submit Quiz →
+            </button>
+          </div>
+        )}
+
+        {quizResult !== null && (
+          <div
+            className={`employee-quiz-result ${
+              quizResult.passed
+                ? "employee-quiz-passed"
+                : "employee-quiz-failed"
+            }`}
+          >
+            <div className="employee-result-icon">
+              {quizResult.passed
+                ? "✓"
+                : "!"}
+            </div>
+
+            <div className="employee-result-content">
+              <h3>
+                {quizResult.passed
+                  ? "Quiz passed!"
+                  : "Quiz not passed"}
+              </h3>
+
+              <p>
+                You scored{" "}
+                <strong>
+                  {
+                    quizResult.percentage
+                  }
+                  %
+                </strong>{" "}
+                (
+                {
+                  quizResult.correctAnswers
+                }
+                /
+                {
+                  quizResult.totalQuestions
+                }
+                ). You need{" "}
+                <strong>
+                  {
+                    quizResult.passingScore
+                  }
+                  %
+                </strong>{" "}
+                to pass.
+              </p>
+
+              <div className="employee-result-actions">
+                {quizResult.passed ? (
+                  <button
+                    type="button"
+                    className="employee-complete-button"
+                    onClick={
+                      goBackToProgram
+                    }
+                  >
+                    Module Completed →
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="employee-retry-button"
+                    onClick={
+                      retryQuiz
+                    }
+                  >
+                    ↻ Retry Quiz
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </form>
+    );
+  };
+
+  const renderContent = () => {
+    switch (
+      module.contentType
+    ) {
+      case "Video":
+        return renderVideo();
+
+      case "Guide":
+        return renderGuide();
+
+      case "Task":
+        return renderTask();
+
+      case "Quiz":
+        return renderQuiz();
+
+      default:
+        return (
+          <div className="employee-content-empty">
+            <h3>
+              Content unavailable
+            </h3>
+
+            <p>
+              This module does not have a
+              supported content type.
+            </p>
+          </div>
+        );
+    }
+  };
 
   return (
-    <div className="app">
-
-      {/* =========================
-          NAVBAR
-      ========================= */}
-
-      <header className="navbar">
-
-        <h2>
+    <div className="preview-app">
+      <header className="preview-navbar">
+        <Link
+          to={`/program/${program.id}`}
+          className="preview-logo"
+        >
           Onboard
-        </h2>
+        </Link>
 
-        <span>
-          {program.role}
-        </span>
+        <div className="preview-navbar-right">
+          <ThemeToggle />
 
+          <span>Employee</span>
+        </div>
       </header>
 
-      <main className="module-page">
+      <main className="employee-module-container">
+        <div className="employee-module-topbar">
+          <Link
+            to={`/program/${program.id}`}
+            className="employee-back-link"
+          >
+            ← Back to onboarding
+          </Link>
 
-        {/* =========================
-            BACK
-        ========================= */}
+          <span className="employee-module-type-label">
+            {module.contentType}
+          </span>
+        </div>
 
-        <button
-          className="back-button"
-          onClick={() =>
-            navigate(
-              `/program/${programId}`
-            )
-          }
-        >
-          ← Back to Program
-        </button>
-
-        {/* =========================
-            MODULE HEADER
-        ========================= */}
-
-        <div className="module-header">
-
-          <p className="label">
-            MODULE {module.order}
+        <section className="employee-module-header">
+          <p className="preview-label">
+            MODULE{" "}
+            {module.order || ""}
           </p>
 
-          <h1>
-            {module.title}
-          </h1>
+          <h1>{module.title}</h1>
 
           <p>
             {module.description}
           </p>
-
-        </div>
-
-        {/* =========================
-            VIDEO
-        ========================= */}
-
-        {module.contentType ===
-          "Video" && (
-
-          <div className="video-container">
-
-            {videoUrl ? (
-
-              <div className="video-content">
-
-                <iframe
-                  src={videoUrl}
-                  title={module.title}
-                  allow="
-                    accelerometer;
-                    autoplay;
-                    clipboard-write;
-                    encrypted-media;
-                    gyroscope;
-                    picture-in-picture;
-                    web-share
-                  "
-                  allowFullScreen
-                />
-
-              </div>
-
-            ) : (
-
-              <div className="video-placeholder">
-
-                <div className="play-button">
-                  ▶
-                </div>
-
-                <p>
-                  Training Video
-                </p>
-
-                <span>
-                  Video content will
-                  appear here.
-                </span>
-
-              </div>
-
-            )}
-
-          </div>
-
-        )}
-
-        {/* =========================
-            GUIDE
-        ========================= */}
-
-        {module.contentType ===
-          "Guide" && (
-
-          <div className="employee-content-card">
-
-            <p className="label">
-              LEARNING GUIDE
-            </p>
-
-            <h2>
-              {module.title}
-            </h2>
-
-            <div className="guide-content">
-
-              {module.content ||
-                "Guide content will appear here."}
-
-            </div>
-
-          </div>
-
-        )}
-
-        {/* =========================
-            TASK
-        ========================= */}
-
-        {module.contentType ===
-          "Task" && (
-
-          <div className="employee-content-card">
-
-            <p className="label">
-              TASK
-            </p>
-
-            <h2>
-              Complete this task
-            </h2>
-
-            <div className="task-content">
-
-              {module.task ||
-                "Task instructions will appear here."}
-
-            </div>
-
-          </div>
-
-        )}
-
-        {/* =========================
-            QUIZ
-        ========================= */}
-
-        {module.contentType ===
-          "Quiz" && (
-
-          <div className="quiz-section">
-
-            <div className="quiz-header">
-
-              <p className="label">
-                KNOWLEDGE CHECK
-              </p>
-
-              <h2>
-                {module.title}
-              </h2>
-
-              <p>
-                Answer the questions below
-                to complete this module.
-              </p>
-
-            </div>
-
-            {questions.length === 0 ? (
-
-              <p className="field-help">
-                This quiz has not been
-                configured yet.
-              </p>
-
-            ) : (
-
-              questions.map(
-                (
-                  question,
-                  questionIndex
-                ) => (
-
-                  <div
-                    className="question"
-                    key={question.id}
-                  >
-
-                    <h3>
-                      {questionIndex + 1}.
-                      {" "}
-                      {question.question}
-                    </h3>
-
-                    <div className="options">
-
-                      {question.options.map(
-                        (
-                          option,
-                          optionIndex
-                        ) => (
-
-                          <button
-                            key={optionIndex}
-                            className={
-                              quizAnswers[
-                                questionIndex
-                              ] ===
-                              optionIndex
-                                ? "option selected"
-                                : "option"
-                            }
-                            onClick={() =>
-                              selectQuizAnswer(
-                                questionIndex,
-                                optionIndex
-                              )
-                            }
-                            disabled={
-                              quizResult !==
-                              null
-                            }
-                          >
-                            {option}
-                          </button>
-
-                        )
-                      )}
-
-                    </div>
-
-                  </div>
-
-                )
-              )
-
-            )}
-
-            {questions.length > 0 &&
-              quizResult === null && (
-
-              <button
-                className="quiz-submit"
-                onClick={submitQuiz}
-                disabled={
-                  Object.keys(
-                    quizAnswers
-                  ).length !==
-                  questions.length
-                }
-              >
-                Submit Quiz →
-              </button>
-
-            )}
-
-            {quizResult !== null && (
-
-              <div className="quiz-result">
-
-                {quizResult >=
-                  (module.passingScore ||
-                    questions.length) ? (
-
-                  <>
-                    <h3>
-                      🎉 Quiz Passed!
-                    </h3>
-
-                    <p>
-                      You scored{" "}
-                      {quizResult} out of{" "}
-                      {questions.length}.
-                    </p>
-
-                    <button
-                      onClick={
-                        markComplete
-                      }
-                    >
-                      Complete Module →
-                    </button>
-                  </>
-
-                ) : (
-
-                  <>
-                    <h3>
-                      Try Again
-                    </h3>
-
-                    <p>
-                      You scored{" "}
-                      {quizResult} out of{" "}
-                      {questions.length}.
-                    </p>
-
-                    <button
-                      onClick={() => {
-                        setQuizAnswers({});
-                        setQuizResult(null);
-                      }}
-                    >
-                      Retry Quiz
-                    </button>
-                  </>
-
-                )}
-
-              </div>
-
-            )}
-
-          </div>
-
-        )}
-
-        {/* =========================
-            COMPLETE
-        ========================= */}
+        </section>
+
+        <section className="employee-module-content-card">
+          {renderContent()}
+        </section>
 
         {module.contentType !==
           "Quiz" && (
-
-          <div className="complete-section">
-
-            <p>
-              Complete the learning material
-              and mark this module as complete.
-            </p>
-
-            <button
-              onClick={markComplete}
-            >
-              Complete Module →
-            </button>
-
+          <div className="employee-module-bottom-actions">
+            {completed ? (
+              <button
+                type="button"
+                className="employee-completed-button"
+                onClick={
+                  goBackToProgram
+                }
+              >
+                ✓ Completed — Back to
+                Program
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="employee-complete-button"
+                onClick={
+                  () => {
+                    markModuleComplete();
+                    navigate(
+                      `/program/${program.id}`
+                    );
+                  }
+                }
+              >
+                Mark as Complete →
+              </button>
+            )}
           </div>
-
         )}
-
       </main>
-
     </div>
   );
 }

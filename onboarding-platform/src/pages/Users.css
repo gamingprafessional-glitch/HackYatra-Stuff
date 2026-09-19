@@ -1,43 +1,26 @@
-.users-app,
-.users-app * {
-  box-sizing: border-box;
-}
-
 .users-app {
   min-height: 100vh;
-
-  margin: 0;
-  padding: 0;
-
   background: #f8fafc;
-
   color: #111827;
 
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease;
 }
 
 
-/* ==========================================
+/* =========================
    NAVBAR
-========================================== */
+========================= */
 
 .users-navbar {
-  width: 100%;
-  height: 68px;
+  height: 72px;
+
+  padding: 0 42px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  padding: 0 42px;
 
   background: #ffffff;
 
@@ -47,104 +30,94 @@
 .users-logo {
   color: #111827;
 
-  text-decoration: none;
-
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 800;
+
+  text-decoration: none;
+}
+
+.users-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .users-navbar-role {
-  color: #6b7280;
+  color: #64748b;
 
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 
-/* ==========================================
+/* =========================
    MAIN
-========================================== */
+========================= */
 
 .users-main {
-  width: 100%;
-  max-width: 1100px;
+  width: min(1180px, calc(100% - 48px));
 
   margin: 0 auto;
 
-  padding: 50px 30px 80px;
+  padding: 56px 0 80px;
 }
 
 
-/* ==========================================
+/* =========================
    HEADER
-========================================== */
+========================= */
 
 .users-page-header {
-  width: 100%;
-
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
 
   gap: 30px;
 
-  margin-bottom: 38px;
+  margin-bottom: 42px;
 }
 
-.users-heading {
-  min-width: 0;
+.users-heading h1 {
+  margin: 7px 0 8px;
+
+  font-size: 46px;
+  line-height: 1;
+
+  letter-spacing: -1.7px;
 }
 
 .users-eyebrow {
-  margin: 0 0 8px;
+  margin: 0;
 
-  color: #6b7280;
+  color: #64748b;
 
   font-size: 11px;
   font-weight: 800;
 
-  letter-spacing: 0.12em;
-}
-
-.users-heading h1 {
-  margin: 0 0 10px;
-
-  color: #111827;
-
-  font-size: 38px;
-  line-height: 1.1;
-  font-weight: 800;
+  letter-spacing: 1.6px;
 }
 
 .users-subtitle {
-  max-width: 600px;
-
   margin: 0;
 
-  color: #6b7280;
+  color: #64748b;
 
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: 14px;
 }
 
-
-/* ==========================================
-   ADD BUTTON
-========================================== */
-
 .users-add-btn {
-  flex-shrink: 0;
+  min-height: 46px;
 
-  padding: 13px 20px;
+  padding: 0 18px;
 
   border: none;
-  border-radius: 10px;
+  border-radius: 9px;
 
   background: #111827;
   color: #ffffff;
 
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 750;
 
   cursor: pointer;
 }
@@ -154,72 +127,66 @@
 }
 
 
-/* ==========================================
+/* =========================
    FORM
-========================================== */
+========================= */
 
 .users-form {
-  width: 100%;
-
-  margin-bottom: 42px;
+  margin-bottom: 45px;
 
   padding: 30px;
 
   background: #ffffff;
 
   border: 1px solid #e5e7eb;
-
   border-radius: 16px;
 
   box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.03);
+    0 8px 30px rgba(15, 23, 42, 0.05);
 }
 
 .users-form-header {
-  margin-bottom: 28px;
+  margin-bottom: 25px;
 }
 
 .users-form-header h2 {
-  margin: 0 0 7px;
+  margin: 6px 0 8px;
 
-  color: #111827;
-
-  font-size: 23px;
+  font-size: 25px;
+  letter-spacing: -0.7px;
 }
 
-.users-form-header p:last-child {
+.users-form-header > p:last-child {
   margin: 0;
 
-  color: #6b7280;
+  color: #64748b;
 
   font-size: 14px;
 }
 
 .users-input-group {
-  margin-bottom: 19px;
+  margin-bottom: 18px;
 }
 
-.users-input-group label {
+.users-input-group label,
+.users-assignment label {
   display: block;
 
   margin-bottom: 7px;
 
-  color: #374151;
+  color: #334155;
 
   font-size: 13px;
   font-weight: 700;
 }
 
 .users-input-group input {
-  display: block;
-
   width: 100%;
   height: 46px;
 
   padding: 0 14px;
 
-  border: 1px solid #d1d5db;
-
+  border: 1px solid #d7dee8;
   border-radius: 9px;
 
   outline: none;
@@ -231,16 +198,16 @@
 }
 
 .users-input-group input:focus {
-  border-color: #111827;
+  border-color: #64748b;
 
   box-shadow:
-    0 0 0 3px rgba(17, 24, 39, 0.08);
+    0 0 0 3px rgba(100, 116, 139, 0.12);
 }
 
 .users-submit-btn {
-  min-height: 45px;
+  min-height: 44px;
 
-  padding: 0 19px;
+  padding: 0 18px;
 
   border: none;
   border-radius: 9px;
@@ -249,19 +216,15 @@
   color: #ffffff;
 
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 750;
 
   cursor: pointer;
 }
 
-.users-submit-btn:hover {
-  background: #1f2937;
-}
 
-
-/* ==========================================
-   LIST HEADER
-========================================== */
+/* =========================
+   USER LIST
+========================= */
 
 .users-list-section {
   width: 100%;
@@ -272,245 +235,122 @@
   align-items: center;
   justify-content: space-between;
 
-  margin-bottom: 15px;
+  margin-bottom: 18px;
 }
 
 .users-list-header h2 {
   margin: 0;
 
   font-size: 22px;
+  letter-spacing: -0.6px;
 }
 
-.users-list-header span {
-  color: #6b7280;
+.users-list-header > span {
+  color: #94a3b8;
 
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
 }
-
-
-/* ==========================================
-   USER LIST
-========================================== */
 
 .users-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
 
-  gap: 12px;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 18px;
 }
 
-
-/* ==========================================
-   USER CARD
-========================================== */
-
 .users-user-card {
-  width: 100%;
+  min-width: 0;
 
-  display: flex;
-  align-items: center;
-
-  gap: 16px;
-
-  padding: 20px;
+  padding: 22px;
 
   background: #ffffff;
 
   border: 1px solid #e5e7eb;
-
-  border-radius: 14px;
-
-  box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.02);
+  border-radius: 15px;
 }
 
-
-/* ==========================================
-   AVATAR
-========================================== */
-
 .users-user-avatar {
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
 
-  flex-shrink: 0;
+  margin-bottom: 14px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 50%;
+  border-radius: 11px;
 
-  background: #f3f4f6;
+  background: #f1f5f9;
+  color: #475569;
 
-  color: #111827;
-
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
-}
-
-
-/* ==========================================
-   USER DETAILS
-========================================== */
-
-.users-user-details {
-  width: 210px;
-
-  flex-shrink: 0;
 }
 
 .users-user-details h3 {
   margin: 0 0 4px;
 
-  color: #111827;
-
-  font-size: 16px;
-  font-weight: 750;
+  font-size: 17px;
 }
 
 .users-user-details p {
-  margin: 0 0 8px;
+  margin: 0 0 7px;
 
-  overflow: hidden;
-
-  color: #6b7280;
+  color: #64748b;
 
   font-size: 13px;
-
-  text-overflow: ellipsis;
-
-  white-space: nowrap;
 }
 
 .users-user-details span {
-  display: inline-block;
+  color: #475569;
 
-  max-width: 100%;
-
-  padding: 5px 9px;
-
-  overflow: hidden;
-
-  border-radius: 6px;
-
-  background: #f3f4f6;
-
-  color: #374151;
-
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-
-  text-overflow: ellipsis;
-
-  white-space: nowrap;
 }
-
-
-/* ==========================================
-   ASSIGNMENT
-========================================== */
 
 .users-assignment {
-  flex: 1;
-
-  min-width: 220px;
+  margin-top: 20px;
 }
 
-.users-assignment label {
-  display: block;
-
-  margin-bottom: 7px;
-
-  color: #374151;
-
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.users-assignment-row {
+.users-assignment-row select {
   width: 100%;
-}
-
-.users-assignment select {
-  width: 100%;
-  height: 40px;
+  height: 42px;
 
   padding: 0 11px;
 
-  border: 1px solid #d1d5db;
-
+  border: 1px solid #d7dee8;
   border-radius: 8px;
 
   outline: none;
 
   background: #ffffff;
-  color: #111827;
+  color: #334155;
 
   font-size: 13px;
-
-  cursor: pointer;
-}
-
-.users-assignment select:focus {
-  border-color: #111827;
-
-  box-shadow:
-    0 0 0 3px rgba(17, 24, 39, 0.07);
 }
 
 .users-assigned-program {
-  margin: 7px 0 0;
+  margin: 9px 0 0;
 
-  color: #047857;
+  color: #059669;
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
-
-
-/* ==========================================
-   USER ACTIONS
-========================================== */
 
 .users-user-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
 
   gap: 8px;
 
-  flex-shrink: 0;
+  margin-top: 18px;
 }
-
-.users-delete-btn {
-  min-height: 36px;
-
-  padding: 0 13px;
-
-  border: 1px solid #e5e7eb;
-
-  border-radius: 8px;
-
-  background: #ffffff;
-
-  color: #6b7280;
-
-  font-size: 12px;
-  font-weight: 700;
-
-  cursor: pointer;
-}
-
-.users-delete-btn:hover {
-  background: #f9fafb;
-
-  color: #111827;
-}
-
-/* ==========================================
-   EMPLOYEE BUTTON
-========================================== */
 
 .users-employee-btn {
   min-height: 36px;
@@ -518,11 +358,9 @@
   padding: 0 13px;
 
   border: none;
-
   border-radius: 8px;
 
   background: #111827;
-
   color: #ffffff;
 
   font-size: 12px;
@@ -537,168 +375,200 @@
   background: #1f2937;
 }
 
-/* ==========================================
+.users-delete-btn {
+  min-height: 36px;
+
+  padding: 0 13px;
+
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #dc2626;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.users-delete-btn:hover {
+  background: #fff7f7;
+}
+
+
+/* =========================
    EMPTY
-========================================== */
+========================= */
 
 .users-empty {
-  padding: 65px 25px;
+  padding: 60px 24px;
 
   text-align: center;
 
   background: #ffffff;
 
-  border: 1px solid #e5e7eb;
-
-  border-radius: 16px;
+  border: 1px dashed #d7dee8;
+  border-radius: 15px;
 }
 
 .users-empty-icon {
-  margin-bottom: 13px;
+  width: 45px;
+  height: 45px;
 
-  font-size: 32px;
+  margin: 0 auto 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: #f1f5f9;
+
+  font-size: 19px;
 }
 
 .users-empty h3 {
   margin: 0 0 7px;
 
-  font-size: 17px;
+  font-size: 18px;
 }
 
 .users-empty p {
   margin: 0;
 
-  color: #6b7280;
+  color: #64748b;
 
   font-size: 14px;
 }
 
 
-/* ==========================================
-   TABLET
-========================================== */
+/* =========================
+   DARK MODE
+========================= */
 
-@media (max-width: 900px) {
+body.dark-mode .users-app {
+  background: #0f172a;
+  color: #f8fafc;
+}
 
-  .users-user-card {
-    align-items: flex-start;
+body.dark-mode .users-navbar {
+  background: #111827;
+  border-color: #1e293b;
+}
 
-    flex-wrap: wrap;
-  }
+body.dark-mode .users-logo {
+  color: #f8fafc;
+}
 
-  .users-user-details {
-    flex: 1;
+body.dark-mode .users-navbar-role {
+  color: #94a3b8;
+}
 
-    width: auto;
+body.dark-mode .users-heading h1,
+body.dark-mode .users-list-header h2,
+body.dark-mode .users-form h2,
+body.dark-mode .users-user-details h3 {
+  color: #f8fafc;
+}
 
-    min-width: 180px;
-  }
+body.dark-mode .users-subtitle,
+body.dark-mode .users-form-header > p:last-child,
+body.dark-mode .users-user-details p {
+  color: #94a3b8;
+}
 
-  .users-assignment {
-    width: 100%;
+body.dark-mode .users-form,
+body.dark-mode .users-user-card,
+body.dark-mode .users-empty {
+  background: #111827;
+  border-color: #1e293b;
+}
 
-    flex-basis: 100%;
+body.dark-mode .users-input-group label,
+body.dark-mode .users-assignment label {
+  color: #cbd5e1;
+}
 
-    margin-left: 64px;
-  }
+body.dark-mode .users-input-group input,
+body.dark-mode .users-assignment-row select {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f8fafc;
+}
 
-  .users-user-actions {
-    margin-left: 64px;
-  }
+body.dark-mode .users-input-group input::placeholder {
+  color: #64748b;
+}
 
+body.dark-mode .users-user-details span {
+  color: #cbd5e1;
+}
+
+body.dark-mode .users-user-avatar,
+body.dark-mode .users-empty-icon {
+  background: #1e293b;
+  color: #cbd5e1;
+}
+
+body.dark-mode .users-assigned-program {
+  color: #34d399;
+}
+
+body.dark-mode .users-delete-btn {
+  background: #111827;
+  border-color: #7f1d1d;
+  color: #f87171;
+}
+
+body.dark-mode .users-delete-btn:hover {
+  background: #2a1518;
 }
 
 
-/* ==========================================
-   MOBILE
-========================================== */
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 800px) {
+  .users-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 @media (max-width: 650px) {
-
   .users-navbar {
-    height: 62px;
-
-    padding: 0 18px;
+    height: auto;
+    min-height: 68px;
+    padding: 14px 20px;
   }
 
   .users-main {
-    padding: 30px 16px 55px;
+    width: calc(100% - 28px);
+    padding-top: 35px;
   }
 
   .users-page-header {
+    align-items: flex-start;
     flex-direction: column;
-
-    gap: 18px;
-
-    margin-bottom: 28px;
-  }
-
-  .users-heading h1 {
-    font-size: 30px;
   }
 
   .users-add-btn {
     width: 100%;
   }
-
-  .users-form {
-    padding: 22px;
-
-    margin-bottom: 32px;
-  }
-
-  .users-submit-btn {
-    width: 100%;
-  }
-
-  .users-user-card {
-    padding: 17px;
-  }
-
-  .users-user-details {
-    min-width: 0;
-  }
-
-  .users-assignment {
-    margin-left: 60px;
-  }
-
-  .users-user-actions {
-    width: 100%;
-
-    margin-left: 60px;
-  }
-
-  .users-delete-btn {
-    width: 100%;
-  }
-
 }
 
-
-/* ==========================================
-   SMALL MOBILE
-========================================== */
-
 @media (max-width: 420px) {
-
-  .users-main {
-    padding-left: 13px;
-    padding-right: 13px;
+  .users-navbar-right {
+    gap: 8px;
   }
 
-  .users-user-card {
-    gap: 12px;
+  .users-navbar-role {
+    display: none;
   }
 
-  .users-user-avatar {
-    width: 43px;
-    height: 43px;
-  }
-
-  .users-assignment,
   .users-user-actions {
     margin-left: 55px;
   }
-
 }

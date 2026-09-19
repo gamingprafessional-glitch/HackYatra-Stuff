@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
 import "./Users.css";
 
 function Users() {
@@ -9,9 +10,7 @@ function Users() {
     const savedUsers =
       localStorage.getItem("onboardingUsers");
 
-    if (!savedUsers) {
-      return [];
-    }
+    if (!savedUsers) return [];
 
     try {
       return JSON.parse(savedUsers);
@@ -24,9 +23,7 @@ function Users() {
     const savedPrograms =
       localStorage.getItem("onboardingPrograms");
 
-    if (!savedPrograms) {
-      return [];
-    }
+    if (!savedPrograms) return [];
 
     try {
       return JSON.parse(savedPrograms);
@@ -35,22 +32,11 @@ function Users() {
     }
   });
 
-  const [showForm, setShowForm] =
-    useState(false);
+  const [showForm, setShowForm] = useState(false);
 
-  const [name, setName] =
-    useState("");
-
-  const [email, setEmail] =
-    useState("");
-
-  const [role, setRole] =
-    useState("");
-
-
-  /* ================================
-     CREATE USER
-  ================================= */
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("");
 
   const createUser = (event) => {
     event.preventDefault();
@@ -86,23 +72,15 @@ function Users() {
     setName("");
     setEmail("");
     setRole("");
-
     setShowForm(false);
   };
-
-
-  /* ================================
-     DELETE USER
-  ================================= */
 
   const deleteUser = (userId) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this user?"
     );
 
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     const updatedUsers = users.filter(
       (user) =>
@@ -118,19 +96,12 @@ function Users() {
     );
   };
 
-
-  /* ================================
-     ASSIGN PROGRAM
-  ================================= */
-
   const assignProgram = (
     userId,
     programId
   ) => {
-
-    const updatedUsers =
-      users.map((user) => {
-
+    const updatedUsers = users.map(
+      (user) => {
         if (
           String(user.id) !==
           String(userId)
@@ -145,7 +116,8 @@ function Users() {
               ? null
               : programId,
         };
-      });
+      }
+    );
 
     setUsers(updatedUsers);
 
@@ -155,18 +127,10 @@ function Users() {
     );
   };
 
-
-  /* ================================
-     GET PROGRAM
-  ================================= */
-
   const getAssignedProgram = (
     programId
   ) => {
-
-    if (!programId) {
-      return null;
-    }
+    if (!programId) return null;
 
     return programs.find(
       (program) =>
@@ -175,14 +139,9 @@ function Users() {
     );
   };
 
-
   return (
     <div className="users-app">
-
-      {/* NAVBAR */}
-
       <header className="users-navbar">
-
         <Link
           to="/admin"
           className="users-logo"
@@ -190,36 +149,29 @@ function Users() {
           Onboard
         </Link>
 
-        <span className="users-navbar-role">
-          Admin
-        </span>
+        <div className="users-navbar-right">
+          <ThemeToggle />
 
+          <span className="users-navbar-role">
+            Admin
+          </span>
+        </div>
       </header>
 
-
       <main className="users-main">
-
-        {/* PAGE HEADER */}
-
         <section className="users-page-header">
-
           <div className="users-heading">
-
             <p className="users-eyebrow">
               ADMIN PANEL
             </p>
 
-            <h1>
-              Users
-            </h1>
+            <h1>Users</h1>
 
             <p className="users-subtitle">
               Create users and assign them
               onboarding programs.
             </p>
-
           </div>
-
 
           <button
             className="users-add-btn"
@@ -231,41 +183,26 @@ function Users() {
               ? "Cancel"
               : "+ Add User"}
           </button>
-
         </section>
 
-
-        {/* CREATE USER FORM */}
-
         {showForm && (
-
           <section className="users-form">
-
             <div className="users-form-header">
-
               <p className="users-eyebrow">
                 NEW USER
               </p>
 
-              <h2>
-                Create User
-              </h2>
+              <h2>Create User</h2>
 
               <p>
                 Add someone who will complete
                 an onboarding program.
               </p>
-
             </div>
 
-
             <form onSubmit={createUser}>
-
               <div className="users-input-group">
-
-                <label>
-                  Full Name
-                </label>
+                <label>Full Name</label>
 
                 <input
                   type="text"
@@ -277,15 +214,10 @@ function Users() {
                     )
                   }
                 />
-
               </div>
 
-
               <div className="users-input-group">
-
-                <label>
-                  Email
-                </label>
+                <label>Email</label>
 
                 <input
                   type="email"
@@ -297,15 +229,10 @@ function Users() {
                     )
                   }
                 />
-
               </div>
 
-
               <div className="users-input-group">
-
-                <label>
-                  Role
-                </label>
+                <label>Role</label>
 
                 <input
                   type="text"
@@ -317,9 +244,7 @@ function Users() {
                     )
                   }
                 />
-
               </div>
-
 
               <button
                 type="submit"
@@ -327,23 +252,13 @@ function Users() {
               >
                 Create User →
               </button>
-
             </form>
-
           </section>
-
         )}
 
-
-        {/* USER LIST */}
-
         <section className="users-list-section">
-
           <div className="users-list-header">
-
-            <h2>
-              Your Users
-            </h2>
+            <h2>Your Users</h2>
 
             <span>
               {users.length}{" "}
@@ -351,139 +266,100 @@ function Users() {
                 ? "user"
                 : "users"}
             </span>
-
           </div>
 
-
           {users.length === 0 ? (
-
             <div className="users-empty">
-
               <div className="users-empty-icon">
                 👤
               </div>
 
-              <h3>
-                No users yet
-              </h3>
+              <h3>No users yet</h3>
 
               <p>
                 Create your first user to
                 start assigning onboarding.
               </p>
-
             </div>
-
           ) : (
-
             <div className="users-grid">
-
               {users.map((user) => {
-
                 const assignedProgram =
                   getAssignedProgram(
                     user.programId
                   );
 
                 return (
-
                   <div
                     className="users-user-card"
                     key={user.id}
                   >
-
-                    {/* AVATAR */}
-
                     <div className="users-user-avatar">
                       {user.name
                         .charAt(0)
                         .toUpperCase()}
                     </div>
 
-
-                    {/* DETAILS */}
-
                     <div className="users-user-details">
+                      <h3>{user.name}</h3>
 
-                      <h3>
-                        {user.name}
-                      </h3>
+                      <p>{user.email}</p>
 
-                      <p>
-                        {user.email}
-                      </p>
-
-                      <span>
-                        {user.role}
-                      </span>
-
+                      <span>{user.role}</span>
                     </div>
 
-
-                    {/* ASSIGNMENT */}
-
                     <div className="users-assignment">
-
                       <label>
                         Assign Program
                       </label>
 
                       <div className="users-assignment-row">
-
                         <select
                           value={
-                            user.programId || ""
+                            user.programId ||
+                            ""
                           }
                           onChange={(event) =>
                             assignProgram(
                               user.id,
-                              event.target.value
+                              event.target
+                                .value
                             )
                           }
                         >
-
                           <option value="">
                             Not assigned
                           </option>
 
                           {programs.map(
                             (program) => (
-
                               <option
-                                key={program.id}
-                                value={program.id}
+                                key={
+                                  program.id
+                                }
+                                value={
+                                  program.id
+                                }
                               >
                                 {program.title}
                               </option>
-
                             )
                           )}
-
                         </select>
-
                       </div>
 
-
                       {assignedProgram && (
-
                         <p className="users-assigned-program">
-
                           ✓{" "}
-                          {assignedProgram.title}
-
+                          {
+                            assignedProgram.title
+                          }
                         </p>
-
                       )}
-
                     </div>
 
-
-                    {/* ACTIONS */}
-
                     <div className="users-user-actions">
-
                       {assignedProgram && (
-
                         <button
                           className="users-employee-btn"
                           onClick={() =>
@@ -494,7 +370,6 @@ function Users() {
                         >
                           Open as Employee →
                         </button>
-
                       )}
 
                       <button
@@ -507,22 +382,14 @@ function Users() {
                       >
                         Delete
                       </button>
-
                     </div>
-
                   </div>
-
                 );
               })}
-
             </div>
-
           )}
-
         </section>
-
       </main>
-
     </div>
   );
 }

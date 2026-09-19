@@ -1,550 +1,323 @@
-import { Link, useParams } from "react-router-dom";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import {
+  Link,
+  useParams,
+} from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
 
 function EmployeeProgram() {
   const { id, userId } = useParams();
 
-  const isUserMode = Boolean(userId);
-
-  const [user] = useState(() => {
-
-    if (!userId) {
-      return null;
-    }
-
+  const [users] = useState(() => {
     const savedUsers =
-      localStorage.getItem(
-        "onboardingUsers"
-      );
+      localStorage.getItem("onboardingUsers");
 
-    if (!savedUsers) {
-      return null;
-    }
+    if (!savedUsers) return [];
 
     try {
-
-      const users =
-        JSON.parse(savedUsers);
-
-      return users.find(
-        (item) =>
-          String(item.id) ===
-          String(userId)
-      );
-
+      return JSON.parse(savedUsers);
     } catch {
-
-      return null;
-
+      return [];
     }
   });
 
-
-  const programId =
-    isUserMode
-      ? user?.programId
-      : id;
-
-
-  const [program] = useState(() => {
-
-    if (!programId) {
-      return null;
-    }
-
+  const [programs] = useState(() => {
     const savedPrograms =
       localStorage.getItem(
         "onboardingPrograms"
       );
 
-    if (!savedPrograms) {
-      return null;
-    }
+    if (!savedPrograms) return [];
 
     try {
-
-      const programs =
-        JSON.parse(savedPrograms);
-
-      return programs.find(
-        (item) =>
-          String(item.id) ===
-          String(programId)
-      );
-
+      return JSON.parse(savedPrograms);
     } catch {
-
-      return null;
-
+      return [];
     }
   });
 
+  const user = useMemo(() => {
+    if (!userId) return null;
+
+    return users.find(
+      (item) =>
+        String(item.id) ===
+        String(userId)
+    );
+  }, [users, userId]);
+
+  const program = useMemo(() => {
+    const programId =
+      userId && user
+        ? user.programId
+        : id;
+
+    if (!programId) return null;
+
+    return programs.find(
+      (item) =>
+        String(item.id) ===
+        String(programId)
+    );
+  }, [programs, user, userId, id]);
+
+  const modules =
+    Array.isArray(program?.modules)
+      ? [...program.modules].sort(
+          (a, b) =>
+            (a.order || 0) -
+            (b.order || 0)
+        )
+      : [];
 
   const [completedModules] =
     useState(() => {
-
-      if (!programId) {
-        return [];
-      }
+      if (!program) return [];
 
       const saved =
         localStorage.getItem(
-          `completedModules_${programId}`
+          `completedModules_${program.id}`
         );
 
-      return saved
-        ? JSON.parse(saved)
-        : [];
+      if (!saved) return [];
+
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [];
+      }
     });
 
-
-  /* ================================
-     INVALID USER
-  ================================= */
-
-  if (isUserMode && !user) {
-
-    return (
-      <div className="app">
-
-        <header className="navbar">
-
-          <h2>
-            Onboard
-          </h2>
-
-          <span>
-            Employee
-          </span>
-
-        </header>
-
-
-        <main className="dashboard">
-
-          <h1>
-            User not found
-          </h1>
-
-          <p>
-            This employee does not exist.
-          </p>
-
-          <Link
-            to="/admin/users"
-            className="start-button"
-          >
-            Back to Users
-          </Link>
-
-        </main>
-
-      </div>
-    );
-
-  }
-
-
-  /* ================================
-     NO ASSIGNMENT
-  ================================= */
-
-  if (
-    isUserMode &&
-    user &&
-    !user.programId
-  ) {
-
-    return (
-      <div className="app">
-
-        <header className="navbar">
-
-          <h2>
-            Onboard
-          </h2>
-
-          <span>
-            Employee
-          </span>
-
-        </header>
-
-
-        <main className="dashboard">
-
-          <section className="welcome">
-
-            <p className="label">
-              EMPLOYEE
-            </p>
-
-            <h1>
-              Welcome, {user.name} 👋
-            </h1>
-
-            <p>
-              Your onboarding program has
-              not been assigned yet.
-            </p>
-
-          </section>
-
-
-          <Link
-            to="/admin/users"
-            className="start-button"
-          >
-            Back to Users
-          </Link>
-
-        </main>
-
-      </div>
-    );
-
-  }
-
-
-  /* ================================
-     PROGRAM NOT FOUND
-  ================================= */
-
   if (!program) {
-
     return (
-      <div className="app">
-
-        <header className="navbar">
-
-          <h2>
-            Onboard
-          </h2>
-
-          <span>
-            Employee
-          </span>
-
-        </header>
-
-
-        <main className="dashboard">
-
-          <h1>
-            Program not found
-          </h1>
-
+      <div className="preview-app">
+        <header className="preview-navbar">
           <Link
             to="/admin"
-            className="start-button"
+            className="preview-logo"
           >
-            Back to Admin
+            Onboard
           </Link>
 
-        </main>
+          <div className="preview-navbar-right">
+            <ThemeToggle />
+            <span>Employee</span>
+          </div>
+        </header>
 
+        <main className="preview-container">
+          <div className="preview-empty">
+            <div className="preview-empty-icon">
+              ?
+            </div>
+
+            <h2>Program not found</h2>
+
+            <p>
+              No onboarding program is
+              available for this employee.
+            </p>
+
+            <Link
+              to="/admin"
+              className="preview-primary-button"
+            >
+              Back to Admin
+            </Link>
+          </div>
+        </main>
       </div>
     );
-
   }
 
-
-  /* ================================
-     MODULES
-  ================================= */
-
-  const modules =
-    Array.isArray(program.modules)
-      ? program.modules
-      : [];
-
-
   const completedCount =
-    completedModules.length;
-
+    modules.filter((module) =>
+      completedModules.includes(
+        String(module.id)
+      )
+    ).length;
 
   const progress =
-    modules.length === 0
-      ? 0
-      : Math.round(
+    modules.length > 0
+      ? Math.round(
           (completedCount /
             modules.length) *
             100
-        );
-
-
-  const isModuleCompleted =
-    (moduleId) =>
-      completedModules.includes(
-        String(moduleId)
-      );
-
+        )
+      : 0;
 
   return (
-    <div className="app">
-
-      {/* NAVBAR */}
-
-      <header className="navbar">
-
+    <div className="preview-app">
+      <header className="preview-navbar">
         <Link
-          to={
-            isUserMode
-              ? `/employee/${user.id}`
-              : `/program/${program.id}`
-          }
-          className="navbar-brand"
+          to="/admin"
+          className="preview-logo"
         >
           Onboard
         </Link>
 
-        <span>
-          {isUserMode
-            ? user.name
-            : "Employee"}
-        </span>
-
+        <div className="preview-navbar-right">
+          <ThemeToggle />
+          <span>
+            {user ? user.name : "Employee"}
+          </span>
+        </div>
       </header>
 
-
-      <main className="dashboard">
-
-        {/* WELCOME */}
-
-        <section className="welcome">
-
-          <p className="label">
-
-            {program.organization}
-
-            {" • "}
-
-            {program.role}
-
-          </p>
-
-
-          <h1>
-
-            Welcome
-            {isUserMode
-              ? `, ${user.name}`
-              : ""}{" "}
-            👋
-
-          </h1>
-
-
-          <p>
-            Let's get you ready for your
-            new role.
-          </p>
-
-        </section>
-
-
-        {/* PROGRAM */}
-
-        <section className="course-card">
-
-          <div>
-
-            <p className="label">
-              YOUR ONBOARDING PROGRAM
+      <main className="preview-container">
+        <section className="preview-hero">
+          <div className="preview-hero-content">
+            <p className="preview-label">
+              {program.organization}
             </p>
 
-            <h2>
+            <h1>
+              {user
+                ? `Welcome, ${user.name}`
+                : "Your onboarding journey"}
+            </h1>
+
+            <p className="preview-program-name">
               {program.title}
-            </h2>
-
-            <p className="description">
-              {program.description}
             </p>
 
+            <p className="preview-role">
+              {program.role}
+            </p>
+
+            {program.description && (
+              <p className="preview-description">
+                {program.description}
+              </p>
+            )}
           </div>
 
+          <div className="preview-progress-card">
+            <div className="preview-progress-header">
+              <span>Your progress</span>
 
-          {/* PROGRESS */}
-
-          <div className="progress-section">
-
-            <div className="progress-info">
-
-              <span>
-                Progress
-              </span>
-
-              <span>
+              <strong>
                 {progress}%
-              </span>
-
+              </strong>
             </div>
 
-
-            <div className="progress-bar">
-
+            <div className="preview-progress-track">
               <div
-                className="progress"
+                className="preview-progress-fill"
                 style={{
-                  width:
-                    `${progress}%`,
+                  width: `${progress}%`,
                 }}
               />
-
             </div>
 
-
-            <p className="progress-text">
-
+            <p>
               {completedCount} of{" "}
-
-              {modules.length}
-
-              {" "}modules completed
-
+              {modules.length} modules
+              completed
             </p>
+          </div>
+        </section>
 
+        <section className="preview-learning-section">
+          <div className="preview-section-header">
+            <div>
+              <p className="preview-label">
+                ONBOARDING
+              </p>
+
+              <h2>
+                Learning path
+              </h2>
+
+              <p>
+                Complete each module to
+                finish your onboarding.
+              </p>
+            </div>
+
+            <span className="preview-module-count">
+              {modules.length}
+            </span>
           </div>
 
-
-          {modules.length === 0 && (
-
-            <div className="completion-message">
-
-              This onboarding program is
-              currently being prepared.
-
-            </div>
-
-          )}
-
-
-          {modules.length > 0 &&
-            completedCount ===
-              modules.length && (
-
-              <div className="completion-message">
-
-                🎉 Onboarding Complete!
-
+          {modules.length === 0 ? (
+            <div className="preview-empty">
+              <div className="preview-empty-icon">
+                +
               </div>
 
-            )}
+              <h3>
+                No modules available
+              </h3>
 
-        </section>
+              <p>
+                Your administrator has not
+                added any onboarding modules
+                yet.
+              </p>
+            </div>
+          ) : (
+            <div className="preview-module-list">
+              {modules.map(
+                (module, index) => {
+                  const completed =
+                    completedModules.includes(
+                      String(module.id)
+                    );
 
+                  return (
+                    <Link
+                      key={module.id}
+                      to={`/program/${program.id}/module/${module.id}`}
+                      className={`preview-module-card ${
+                        completed
+                          ? "preview-module-completed"
+                          : ""
+                      }`}
+                    >
+                      <div className="preview-module-number">
+                        {completed
+                          ? "✓"
+                          : index + 1}
+                      </div>
 
-        {/* LEARNING PATH */}
+                      <div className="preview-module-content">
+                        <div className="preview-module-top">
+                          <span className="preview-module-type">
+                            {
+                              module.contentType
+                            }
+                          </span>
 
-        <section className="modules">
+                          {completed && (
+                            <span className="preview-completed-badge">
+                              Completed
+                            </span>
+                          )}
+                        </div>
 
-          <h2>
-            Your Learning Path
-          </h2>
+                        <h3>
+                          {module.title}
+                        </h3>
 
+                        <p>
+                          {
+                            module.description
+                          }
+                        </p>
+                      </div>
 
-          <div className="module-list">
-
-            {modules.map(
-              (module, index) => {
-
-                const completed =
-                  isModuleCompleted(
-                    module.id
+                      <div className="preview-module-arrow">
+                        →
+                      </div>
+                    </Link>
                   );
-
-
-                const previousCompleted =
-                  index === 0 ||
-                  isModuleCompleted(
-                    modules[
-                      index - 1
-                    ].id
-                  );
-
-
-                const locked =
-                  !completed &&
-                  !previousCompleted;
-
-
-                return (
-
-                  <Link
-                    key={module.id}
-                    to={
-                      locked
-                        ? "#"
-                        : `/program/${program.id}/module/${module.id}`
-                    }
-                    className={
-                      locked
-                        ? "module employee-module locked"
-                        : "module employee-module"
-                    }
-                    onClick={(event) => {
-
-                      if (locked) {
-
-                        event.preventDefault();
-
-                      }
-
-                    }}
-                  >
-
-                    <span className="number">
-
-                      {completed
-                        ? "✓"
-                        : index + 1}
-
-                    </span>
-
-
-                    <div>
-
-                      <h3>
-                        {module.title}
-                      </h3>
-
-                      <p>
-                        {module.description}
-                      </p>
-
-
-                      <span className="employee-content-type">
-
-                        {module.contentType}
-
-                      </span>
-
-                    </div>
-
-
-                    <span className="status">
-
-                      {completed
-                        ? "Completed"
-                        : locked
-                        ? "Locked"
-                        : "Start"}
-
-                    </span>
-
-                  </Link>
-
-                );
-
-              }
-            )}
-
-          </div>
-
+                }
+              )}
+            </div>
+          )}
         </section>
-
       </main>
-
     </div>
   );
 }
