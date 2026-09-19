@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
 
 function Admin() {
   const navigate = useNavigate();
@@ -44,6 +45,11 @@ function Admin() {
     },
   ];
 
+
+  /* =================================
+     PROGRAMS
+  ================================= */
+
   const [programs, setPrograms] = useState(() => {
     const savedPrograms =
       localStorage.getItem("onboardingPrograms");
@@ -69,6 +75,11 @@ function Admin() {
     return defaultPrograms;
   });
 
+
+  /* =================================
+     FORM STATE
+  ================================= */
+
   const [showForm, setShowForm] =
     useState(false);
 
@@ -87,23 +98,42 @@ function Admin() {
   const [description, setDescription] =
     useState("");
 
+
+  /* =================================
+     RESET FORM
+  ================================= */
+
   const resetForm = () => {
     setOrganization("");
     setRole("");
     setTitle("");
     setDescription("");
+
     setEditingProgramId(null);
+
     setShowForm(false);
   };
+
+
+  /* =================================
+     CREATE FORM
+  ================================= */
 
   const openCreateForm = () => {
     setOrganization("");
     setRole("");
     setTitle("");
     setDescription("");
+
     setEditingProgramId(null);
+
     setShowForm(true);
   };
+
+
+  /* =================================
+     EDIT FORM
+  ================================= */
 
   const openEditForm = (program) => {
     setOrganization(
@@ -123,6 +153,7 @@ function Admin() {
     );
 
     setEditingProgramId(program.id);
+
     setShowForm(true);
 
     window.scrollTo({
@@ -130,6 +161,11 @@ function Admin() {
       behavior: "smooth",
     });
   };
+
+
+  /* =================================
+     SAVE PROGRAM
+  ================================= */
 
   const saveProgram = (event) => {
     event.preventDefault();
@@ -142,9 +178,14 @@ function Admin() {
       return;
     }
 
+
+    /* EDIT EXISTING PROGRAM */
+
     if (editingProgramId !== null) {
+
       const updatedPrograms =
         programs.map((program) => {
+
           if (
             String(program.id) !==
             String(editingProgramId)
@@ -154,19 +195,29 @@ function Admin() {
 
           return {
             ...program,
+
             organization:
               organization.trim(),
-            role: role.trim(),
-            title: title.trim(),
+
+            role:
+              role.trim(),
+
+            title:
+              title.trim(),
+
             description:
               description.trim(),
-            modules: Array.isArray(
-              program.modules
-            )
-              ? program.modules
-              : [],
+
+            modules:
+              Array.isArray(
+                program.modules
+              )
+                ? program.modules
+                : [],
           };
+
         });
+
 
       setPrograms(updatedPrograms);
 
@@ -180,21 +231,33 @@ function Admin() {
       return;
     }
 
+
+    /* CREATE NEW PROGRAM */
+
     const newProgram = {
       id: Date.now(),
+
       organization:
         organization.trim(),
-      role: role.trim(),
-      title: title.trim(),
+
+      role:
+        role.trim(),
+
+      title:
+        title.trim(),
+
       description:
         description.trim(),
+
       modules: [],
     };
+
 
     const updatedPrograms = [
       ...programs,
       newProgram,
     ];
+
 
     setPrograms(updatedPrograms);
 
@@ -206,24 +269,36 @@ function Admin() {
     resetForm();
   };
 
+
+  /* =================================
+     DELETE PROGRAM
+  ================================= */
+
   const deleteProgram = (programId) => {
-    const program = programs.find(
-      (item) =>
-        String(item.id) ===
-        String(programId)
-    );
+
+    const program =
+      programs.find(
+        (item) =>
+          String(item.id) ===
+          String(programId)
+      );
+
 
     if (!program) {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Delete "${program.title}"? This cannot be undone.`
-    );
+
+    const confirmed =
+      window.confirm(
+        `Delete "${program.title}"? This cannot be undone.`
+      );
+
 
     if (!confirmed) {
       return;
     }
+
 
     const updatedPrograms =
       programs.filter(
@@ -232,20 +307,30 @@ function Admin() {
           String(programId)
       );
 
+
     setPrograms(updatedPrograms);
+
 
     localStorage.setItem(
       "onboardingPrograms",
       JSON.stringify(updatedPrograms)
     );
 
+
+    /* Remove progress */
+
     localStorage.removeItem(
       `completedModules_${programId}`
     );
   };
 
+
   return (
     <div className="app">
+
+      {/* =================================
+          NAVBAR
+      ================================= */}
 
       <header className="navbar">
 
@@ -256,16 +341,27 @@ function Admin() {
           Onboard
         </Link>
 
-        <span>
-          Admin
-        </span>
+
+        <div className="navbar-right">
+
+          <ThemeToggle />
+
+          <span>
+            Admin
+          </span>
+
+        </div>
 
       </header>
 
 
+      {/* =================================
+          MAIN
+      ================================= */}
+
       <main className="admin-page">
 
-        {/* ================================
+        {/* =================================
             HEADER
         ================================= */}
 
@@ -277,9 +373,11 @@ function Admin() {
               ADMIN PANEL
             </p>
 
+
             <h1>
               Onboarding Programs
             </h1>
+
 
             <p>
               Create and manage onboarding
@@ -297,6 +395,7 @@ function Admin() {
             >
               👥 Users
             </Link>
+
 
             <button
               className="start-button admin-create-button"
@@ -316,8 +415,8 @@ function Admin() {
         </section>
 
 
-        {/* ================================
-            PROGRAM FORM
+        {/* =================================
+            CREATE / EDIT FORM
         ================================= */}
 
         {showForm && (
@@ -325,16 +424,22 @@ function Admin() {
           <section className="admin-form-card">
 
             <p className="label">
+
               {editingProgramId !== null
                 ? "EDIT PROGRAM"
                 : "NEW PROGRAM"}
+
             </p>
 
+
             <h2>
+
               {editingProgramId !== null
                 ? "Edit Program"
                 : "Create Program"}
+
             </h2>
+
 
             <p>
               Define who this onboarding
@@ -344,11 +449,14 @@ function Admin() {
 
             <form onSubmit={saveProgram}>
 
+              {/* ORGANIZATION */}
+
               <div className="form-group">
 
                 <label>
                   Organization
                 </label>
+
 
                 <input
                   type="text"
@@ -364,11 +472,14 @@ function Admin() {
               </div>
 
 
+              {/* ROLE */}
+
               <div className="form-group">
 
                 <label>
                   Role
                 </label>
+
 
                 <input
                   type="text"
@@ -384,11 +495,14 @@ function Admin() {
               </div>
 
 
+              {/* PROGRAM NAME */}
+
               <div className="form-group">
 
                 <label>
                   Program Name
                 </label>
+
 
                 <input
                   type="text"
@@ -404,11 +518,14 @@ function Admin() {
               </div>
 
 
+              {/* DESCRIPTION */}
+
               <div className="form-group">
 
                 <label>
                   Description
                 </label>
+
 
                 <textarea
                   placeholder="Describe this onboarding program..."
@@ -423,6 +540,8 @@ function Admin() {
               </div>
 
 
+              {/* FORM BUTTONS */}
+
               <div className="program-form-actions">
 
                 <button
@@ -433,6 +552,7 @@ function Admin() {
                     ? "Save Changes →"
                     : "Create Program →"}
                 </button>
+
 
                 <button
                   type="button"
@@ -451,7 +571,7 @@ function Admin() {
         )}
 
 
-        {/* ================================
+        {/* =================================
             PROGRAM LIST
         ================================= */}
 
@@ -463,12 +583,15 @@ function Admin() {
               Your Programs
             </h2>
 
+
             <span>
               {programs.length} programs
             </span>
 
           </div>
 
+
+          {/* NO PROGRAMS */}
 
           {programs.length === 0 ? (
 
@@ -478,14 +601,17 @@ function Admin() {
                 📚
               </div>
 
+
               <h3>
                 No programs yet
               </h3>
+
 
               <p>
                 Create your first onboarding
                 program to get started.
               </p>
+
 
               <button
                 className="start-button"
@@ -498,6 +624,8 @@ function Admin() {
 
           ) : (
 
+            /* PROGRAM GRID */
+
             <div className="program-grid">
 
               {programs.map((program) => {
@@ -509,12 +637,15 @@ function Admin() {
                     ? program.modules
                     : [];
 
+
                 return (
 
                   <div
                     className="program-admin-card"
                     key={program.id}
                   >
+
+                    {/* PROGRAM INFO */}
 
                     <div className="program-card-top">
 
@@ -524,9 +655,11 @@ function Admin() {
                           {program.organization}
                         </span>
 
+
                         <h3>
                           {program.title}
                         </h3>
+
 
                         <p>
                           {program.role}
@@ -537,11 +670,17 @@ function Admin() {
                     </div>
 
 
+                    {/* DESCRIPTION */}
+
                     <p className="program-card-description">
+
                       {program.description ||
                         "No description provided."}
+
                     </p>
 
+
+                    {/* MODULE COUNT */}
 
                     <div className="program-card-meta">
 
@@ -552,7 +691,11 @@ function Admin() {
                     </div>
 
 
+                    {/* ACTIONS */}
+
                     <div className="program-card-actions">
+
+                      {/* MANAGE */}
 
                       <button
                         className="program-action-button"
@@ -566,13 +709,19 @@ function Admin() {
                       </button>
 
 
+                      {/* PREVIEW */}
+
                       <Link
-                        to={`/program/${program.id}`}
+                        to={
+                          `/program/${program.id}`
+                        }
                         className="program-action-button"
                       >
                         Preview
                       </Link>
 
+
+                      {/* EDIT */}
 
                       <button
                         className="edit-program-button"
@@ -583,6 +732,8 @@ function Admin() {
                         Edit
                       </button>
 
+
+                      {/* DELETE */}
 
                       <button
                         className="delete-program-button"

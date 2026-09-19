@@ -1408,6 +1408,17 @@ button {
 
 }
 
+@media (max-width: 650px) {
+
+  .navbar-right {
+    gap: 8px;
+  }
+
+  .theme-toggle span {
+    display: none;
+  }
+
+}
 
 /* =========================================
    VERY SMALL SCREENS
@@ -1444,4 +1455,248 @@ button {
     margin-left: 46px;
   }
 
+}
+/* =========================================
+   THEME TOGGLE
+========================================= */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  min-height: 38px;
+
+  padding: 0 12px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 9px;
+
+  background: #ffffff;
+  color: #111827;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: #f3f4f6;
+}
+
+
+/* =========================================
+   DARK MODE
+========================================= */
+
+body.dark-mode {
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+
+/* APP */
+
+body.dark-mode .app {
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+
+/* NAVBAR */
+
+body.dark-mode .navbar {
+  background: #111827;
+  border-color: #1f2937;
+}
+
+body.dark-mode .navbar h2,
+body.dark-mode .navbar-brand {
+  color: #f8fafc;
+}
+
+body.dark-mode .navbar span {
+  color: #9ca3af;
+}
+
+
+/* COMMON TEXT */
+
+body.dark-mode .label {
+  color: #9ca3af;
+}
+
+body.dark-mode .welcome p,
+body.dark-mode .description,
+body.dark-mode .program-header p,
+body.dark-mode .module-page-header p,
+body.dark-mode .module-editor-header p {
+  color: #9ca3af;
+}
+
+
+/* CARDS */
+
+body.dark-mode .course-card,
+body.dark-mode .content-card,
+body.dark-mode .quiz-question,
+body.dark-mode .quiz-question-builder,
+body.dark-mode .admin-form-card,
+body.dark-mode .program-admin-card,
+body.dark-mode .journey-module,
+body.dark-mode .quiz-result,
+body.dark-mode .empty-journey,
+body.dark-mode .preview-banner {
+  background: #111827;
+
+  border-color: #1f2937;
+
+  color: #f8fafc;
+}
+
+
+/* MODULES */
+
+body.dark-mode .module {
+  background: #111827;
+
+  border-color: #1f2937;
+
+  color: #f8fafc;
+}
+
+body.dark-mode .module:hover {
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+body.dark-mode .module .number,
+body.dark-mode .journey-module-number {
+  background: #1f2937;
+
+  color: #f8fafc;
+}
+
+body.dark-mode .module p,
+body.dark-mode .journey-module-info p {
+  color: #9ca3af;
+}
+
+body.dark-mode .module .status {
+  color: #9ca3af;
+}
+
+
+/* BUTTONS */
+
+body.dark-mode .secondary-action-button,
+body.dark-mode .program-action-button,
+body.dark-mode .edit-program-button,
+body.dark-mode .delete-program-button,
+body.dark-mode .edit-module-button,
+body.dark-mode .delete-module-button,
+body.dark-mode .add-question-button,
+body.dark-mode .delete-question-button {
+  background: #111827;
+
+  border-color: #374151;
+
+  color: #f8fafc;
+}
+
+body.dark-mode .secondary-action-button:hover,
+body.dark-mode .program-action-button:hover,
+body.dark-mode .edit-program-button:hover,
+body.dark-mode .delete-program-button:hover,
+body.dark-mode .edit-module-button:hover,
+body.dark-mode .delete-module-button:hover,
+body.dark-mode .add-question-button:hover,
+body.dark-mode .delete-question-button:hover {
+  background: #1f2937;
+}
+
+
+/* FORMS */
+
+body.dark-mode .form-group input,
+body.dark-mode .form-group textarea,
+body.dark-mode .form-group select,
+body.dark-mode .quiz-option-builder input,
+body.dark-mode .passing-score select {
+  background: #0f172a;
+
+  border-color: #374151;
+
+  color: #f8fafc;
+}
+
+body.dark-mode .form-group input::placeholder,
+body.dark-mode .form-group textarea::placeholder {
+  color: #6b7280;
+}
+
+body.dark-mode .form-group label,
+body.dark-mode .passing-score label {
+  color: #d1d5db;
+}
+
+
+/* QUIZ */
+
+body.dark-mode .quiz-option {
+  background: #0f172a;
+
+  border-color: #374151;
+
+  color: #f8fafc;
+}
+
+body.dark-mode .quiz-option:hover {
+  background: #1f2937;
+}
+
+
+/* PASSING SCORE */
+
+body.dark-mode .passing-score {
+  background: #0f172a;
+
+  border-color: #1f2937;
+}
+
+
+/* EMPLOYEE CONTENT TYPE */
+
+body.dark-mode .employee-content-type {
+  color: #9ca3af;
+}
+
+
+/* THEME BUTTON */
+
+body.dark-mode .theme-toggle {
+  background: #1f2937;
+
+  border-color: #374151;
+
+  color: #f8fafc;
+}
+
+body.dark-mode .theme-toggle:hover {
+  background: #374151;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
 }
